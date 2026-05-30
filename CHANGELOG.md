@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: `MeterReportService.collectBatch` now consumes the server `Commands` response stream so OAP processes native meter batches (grpc-dart client-streaming semantics).
+
 ## 0.1.4
 
 - README: use absolute GitHub raw image URLs so screenshots render on pub.dev.
