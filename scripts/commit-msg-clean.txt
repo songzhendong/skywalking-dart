@@ -1,0 +1,4 @@
+feat: skywalking-dart OTLP agent for Dart and Flutter
+
+OpenTelemetry OTLP/HTTP traces and metrics (SkyWalking OAP compatible).
+OtlpAgent, OtlpFlutter, InstrumentedClient, bin/verify_otlp.dart, docs and tests.

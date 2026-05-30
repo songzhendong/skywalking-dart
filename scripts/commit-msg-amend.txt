@@ -1,0 +1,5 @@
+feat: add native meter/log gRPC export and simplify agent modes
+
+- AgentMode: otlp, hybrid, nativeFull (trace/metrics/log channel matrix)
+- OAP docs: doc/oap/OAP_SETUP.md, dart-otlp.yaml (Layer.DART)
+- Deprecate flutter-otlp naming in docs
