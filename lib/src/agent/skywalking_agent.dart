@@ -219,93 +219,55 @@ class SkywalkingAgent {
 
 
   void reportLog({
-
     required String message,
-
     String endpoint = '',
-
     Map<String, String> tags = const {},
-
     String? traceId,
-
     String? traceSegmentId,
-
     int? spanId,
-
+    String bodyType = 'text',
   }) {
-
     final native = _native;
-
     if (config.usesNativeLogs && native != null) {
-
       native.reportLog(
-
         message: message,
-
         endpoint: endpoint,
-
         tags: tags,
-
         traceId: traceId,
-
         traceSegmentId: traceSegmentId,
-
         spanId: spanId,
-
+        bodyType: bodyType,
       );
-
       return;
-
     }
-
     // OTLP logs export is not implemented yet.
-
   }
 
-
-
+  /// Native log with trace context (aligned with Java LogReportService + toolkit).
   void reportErrorLog(
-
     Object error, {
-
     String context = 'app',
-
     StackTrace? stack,
-
     String endpoint = '',
-
   }) {
-
+    final stackText = stack?.toString();
     final tags = <String, String>{
-
+      'level': 'ERROR',
+      'logger': context,
       'exception.context': context,
-
       Semconv.exceptionType: error.runtimeType.toString(),
-
       Semconv.exceptionMessage: error.toString(),
-
-      if (stack != null)
-
-        'exception.stack': stack.toString().substring(
-
-              0,
-
-              stack.toString().length.clamp(0, 512),
-
-            ),
-
+      if (stackText != null)
+        'exception.stacktrace': stackText.substring(
+          0,
+          stackText.length.clamp(0, 4096),
+        ),
     };
-
     reportLog(
-
       message: error.toString(),
-
       endpoint: endpoint.isEmpty ? context : endpoint,
-
       tags: tags,
-
     );
-
   }
 
 

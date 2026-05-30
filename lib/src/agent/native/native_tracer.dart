@@ -1,24 +1,44 @@
+import 'native_span.dart';
 import 'segment_exporter.dart';
+
+import 'native_log_trace_context.dart';
 
 /// Native SkyWalking tracer (segment-based).
 class NativeTracer {
   NativeTracer(this._exporter);
 
   final SegmentExporter _exporter;
+  NativeLogTraceContext? _lastSpanContext;
+
+  /// Last enqueued span — used to attach trace context to native logs (Java agent style).
+  NativeLogTraceContext? get lastSpanContext => _lastSpanContext;
 
   void recordSpan({
     required String name,
     Duration duration = Duration.zero,
     Map<String, String> attributes = const {},
     bool isError = false,
+    String? traceId,
+    String? traceSegmentId,
   }) {
-    _exporter.enqueue(
-      _exporter.buildLocalSpan(
-        operationName: name,
-        duration: duration,
-        isError: isError,
-        tags: attributes,
-      ),
+    final span = _exporter.buildLocalSpan(
+      operationName: name,
+      duration: duration,
+      isError: isError,
+      tags: attributes,
+      traceId: traceId,
+      traceSegmentId: traceSegmentId,
+    );
+    _remember(span);
+    _exporter.enqueue(span);
+  }
+
+  void _remember(NativeSpanData span) {
+    _lastSpanContext = NativeLogTraceContext(
+      traceId: span.traceId,
+      traceSegmentId: span.traceSegmentId,
+      spanId: span.spanId,
+      operationName: span.operationName,
     );
   }
 

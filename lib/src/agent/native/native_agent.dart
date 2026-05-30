@@ -102,17 +102,31 @@ class NativeAgent {
     String? traceId,
     String? traceSegmentId,
     int? spanId,
+    String bodyType = 'text',
   }) {
     final exporter = _logs;
     if (exporter == null) return;
+
+    var resolvedTraceId = traceId;
+    var resolvedSegmentId = traceSegmentId;
+    var resolvedSpanId = spanId;
+    final active = _tracer?.lastSpanContext;
+    if (active != null && active.isValid) {
+      resolvedTraceId ??= active.traceId;
+      resolvedSegmentId ??= active.traceSegmentId;
+      resolvedSpanId ??= active.spanId;
+      endpoint = endpoint.isNotEmpty ? endpoint : active.operationName;
+    }
+
     exporter.enqueue(
       NativeLogEntry(
         message: message,
         endpoint: endpoint,
         tags: tags,
-        traceId: traceId,
-        traceSegmentId: traceSegmentId,
-        spanId: spanId,
+        traceId: resolvedTraceId,
+        traceSegmentId: resolvedSegmentId,
+        spanId: resolvedSpanId,
+        bodyType: bodyType,
       ),
     );
   }
