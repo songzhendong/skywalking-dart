@@ -5,6 +5,11 @@ import 'package:http/http.dart' as http;
 import '../common/agent_meter.dart';
 import '../common/instrumented_client.dart';
 import 'native_config.dart';
+import '../common/id_generator.dart';
+import 'grpc_log_client.dart';
+import 'grpc_management_client.dart';
+import 'grpc_trace_client.dart';
+import 'native_log_context_resolver.dart';
 import 'native_log_entry.dart';
 import 'native_log_exporter.dart';
 import 'native_meter_exporter.dart';
@@ -38,11 +43,20 @@ class NativeAgent {
     bool tracesEnabled = true,
     bool metricsEnabled = false,
     bool logsEnabled = false,
+    bool registerService = true,
+    GrpcTraceClient? traceClient,
+    GrpcLogClient? logClient,
+    GrpcManagementClient? managementClient,
+    IdGenerator? idGenerator,
   }) {
     if (_instance != null) return _instance!;
     SegmentExporter? segments;
     if (tracesEnabled && config.tracesEnabled) {
-      segments = SegmentExporter(config);
+      segments = SegmentExporter(
+        config,
+        client: traceClient,
+        ids: idGenerator,
+      );
       if (periodicFlush) {
         segments.start();
       }
@@ -56,13 +70,18 @@ class NativeAgent {
     }
     NativeLogExporter? logs;
     if (logsEnabled) {
-      logs = NativeLogExporter(config);
+      logs = NativeLogExporter(config, client: logClient);
       if (periodicFlush) {
         logs.start();
       }
     }
-    final registration = NativeServiceRegistration(config);
-    unawaited(registration.start());
+    final registration = NativeServiceRegistration(
+      config,
+      client: managementClient,
+    );
+    if (registerService) {
+      unawaited(registration.start());
+    }
     _instance = NativeAgent._(config, segments, registration, meters, logs);
     return _instance!;
   }
@@ -107,26 +126,16 @@ class NativeAgent {
     final exporter = _logs;
     if (exporter == null) return;
 
-    var resolvedTraceId = traceId;
-    var resolvedSegmentId = traceSegmentId;
-    var resolvedSpanId = spanId;
-    final active = _tracer?.lastSpanContext;
-    if (active != null && active.isValid) {
-      resolvedTraceId ??= active.traceId;
-      resolvedSegmentId ??= active.traceSegmentId;
-      resolvedSpanId ??= active.spanId;
-      endpoint = endpoint.isNotEmpty ? endpoint : active.operationName;
-    }
-
     exporter.enqueue(
-      NativeLogEntry(
+      resolveNativeLogEntry(
         message: message,
         endpoint: endpoint,
         tags: tags,
-        traceId: resolvedTraceId,
-        traceSegmentId: resolvedSegmentId,
-        spanId: resolvedSpanId,
+        traceId: traceId,
+        traceSegmentId: traceSegmentId,
+        spanId: spanId,
         bodyType: bodyType,
+        activeContext: _tracer?.lastSpanContext,
       ),
     );
   }

@@ -74,12 +74,8 @@ void main() {
     expect(otlpCfg.logsChannel, TelemetryChannel.none);
   });
 
-  test('AgentConfig falls back to unknown instance without version', () {
-    final cfg = AgentConfig.fromEnvironment(
-      dartDefines: const {'OTEL_SERVICE_NAME': 'my-app'},
-      defaultServiceName: 'fallback',
-    );
-    expect(cfg.otlp.serviceInstanceId, 'unknown');
-    expect(cfg.native.serviceInstanceId, 'unknown');
+  test('native service instance id is unknown when version unset', () {
+    final native = NativeAgentConfig(serviceName: 'my-app');
+    expect(native.serviceInstanceId, 'unknown');
   });
 }

@@ -8,6 +8,14 @@ import 'agent_mode.dart';
 
 import 'common/agent_meter.dart';
 
+import 'common/id_generator.dart';
+
+import 'native/grpc_log_client.dart';
+
+import 'native/grpc_management_client.dart';
+
+import 'native/grpc_trace_client.dart';
+
 import 'native/native_agent.dart';
 
 import 'native/native_tracer.dart';
@@ -62,6 +70,18 @@ class SkywalkingAgent {
 
     http.Client? httpClient,
 
+    bool periodicNativeFlush = true,
+
+    bool registerNativeService = true,
+
+    GrpcTraceClient? nativeTraceClient,
+
+    GrpcLogClient? nativeLogClient,
+
+    GrpcManagementClient? nativeManagementClient,
+
+    IdGenerator? nativeIdGenerator,
+
   }) {
 
     if (_instance != null) return _instance!;
@@ -90,13 +110,23 @@ class SkywalkingAgent {
 
         config.native,
 
-        periodicFlush: true,
+        periodicFlush: periodicNativeFlush,
 
         tracesEnabled: config.usesNativeTraces,
 
         metricsEnabled: config.usesNativeMetrics,
 
         logsEnabled: config.usesNativeLogs,
+
+        registerService: registerNativeService,
+
+        traceClient: nativeTraceClient,
+
+        logClient: nativeLogClient,
+
+        managementClient: nativeManagementClient,
+
+        idGenerator: nativeIdGenerator,
 
       );
 
