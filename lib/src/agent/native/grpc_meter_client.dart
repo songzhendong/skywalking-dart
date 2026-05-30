@@ -49,16 +49,29 @@ class GrpcMeterClient {
       samples: samples,
     );
     if (!await _preflightTcp(_host, _port)) {
+      // ignore: avoid_print
+      print('[skywalking_dart] cannot reach $_host:$_port (OAP gRPC meter)');
       return false;
     }
+    // ignore: avoid_print
+    print(
+      '[skywalking_dart] gRPC collectBatch (${payload.length} bytes, '
+      '${samples.length} samples) ...',
+    );
     try {
       return await Isolate.run(
         () => _grpcCollectBatch(_host, _port, payload),
       ).timeout(
         const Duration(seconds: 15),
-        onTimeout: () => false,
+        onTimeout: () {
+          // ignore: avoid_print
+          print('[skywalking_dart] gRPC meter export timed out');
+          return false;
+        },
       );
-    } catch (_) {
+    } catch (e) {
+      // ignore: avoid_print
+      print('[skywalking_dart] meter export failed: $e');
       return false;
     }
   }
@@ -98,14 +111,17 @@ Future<bool> _grpcCollectBatch(String host, int port, List<int> payload) async {
   );
   try {
     final client = Client(channel);
-    final call = client.$createStreamingCall<List<int>, List<int>>(
+    final responses = client.$createStreamingCall<List<int>, List<int>>(
       _collectBatchMethod,
       Stream.value(payload),
       options: CallOptions(timeout: const Duration(seconds: 10)),
     );
-    await call;
+    // Client-streaming RPC: consume server Commands response (see grpc-dart).
+    await responses.toList();
     return true;
-  } on GrpcError {
+  } on GrpcError catch (e) {
+    // ignore: avoid_print
+    print('[skywalking_dart] meter gRPC ${e.codeName}: ${e.message}');
     return false;
   } finally {
     try {
