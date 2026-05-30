@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- fix: `LogReportService.collect` now consumes the server `Commands` response stream (same client-streaming issue as meter).
 - fix: `MeterReportService.collectBatch` now consumes the server `Commands` response stream so OAP processes native meter batches (grpc-dart client-streaming semantics).
 
 ## 0.1.4
