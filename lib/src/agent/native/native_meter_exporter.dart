@@ -7,8 +7,14 @@ import 'native_meter_sample.dart';
 
 String _nativeMetricName(String name) => name.replaceAll('.', '_');
 
-Map<String, String> _nativeAttributes(Map<String, String> attributes) {
-  final out = <String, String>{};
+Map<String, String> _nativeAttributes(
+  NativeAgentConfig config,
+  Map<String, String> attributes,
+) {
+  final out = <String, String>{
+    // dart-native-meter.yaml filter: tags.service must be set.
+    'service': config.serviceName,
+  };
   for (final entry in attributes.entries) {
     out[entry.key.replaceAll('.', '_')] = entry.value;
   }
@@ -45,9 +51,12 @@ class NativeMeterExporter {
       NativeMeterSample(
         name: _nativeMetricName(name),
         value: delta.toDouble(),
-        attributes: _nativeAttributes(attributes),
+        attributes: _nativeAttributes(config, attributes),
       ),
     );
+    if (_queue.length >= config.maxBatchSize) {
+      unawaited(flush());
+    }
   }
 
   void recordHistogram(
@@ -57,9 +66,12 @@ class NativeMeterExporter {
   }) {
     if (_closed) return;
     final base = _nativeMetricName(name);
-    final attrs = _nativeAttributes(attributes);
+    final attrs = _nativeAttributes(config, attributes);
     _queue.add(NativeMeterSample(name: '${base}_sum', value: value, attributes: attrs));
     _queue.add(NativeMeterSample(name: '${base}_count', value: 1, attributes: attrs));
+    if (_queue.length >= config.maxBatchSize) {
+      unawaited(flush());
+    }
   }
 
   Future<bool> flush() async {

@@ -155,9 +155,12 @@ class NativeAgent {
   }
 
   Future<void> flush() async {
-    await _segments?.flush();
-    await _meters?.flush();
-    await _logs?.flush();
+    // Segment / meter / log share gRPC 11800; flush together after biz activity.
+    await Future.wait([
+      if (_segments != null) _segments!.flush(),
+      if (_meters != null) _meters!.flush(),
+      if (_logs != null) _logs!.flush(),
+    ]);
   }
 
   Future<void> shutdown() async {
