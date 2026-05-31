@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - **Breaking:** OTLP / hybrid / `dart-otlp` removed; agent is **nativeFull only** (gRPC 11800: Trace + Meter + Log).
 - Removed `agent/otlp/`, `bin/verify_otlp.dart`, `doc/oap/dart-otlp.yaml`; docs and example updated for native agent.
