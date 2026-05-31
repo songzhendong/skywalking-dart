@@ -1,7 +1,7 @@
 # Analyzer, unit tests, and optional OAP gRPC smoke (verify_native --quick).
 name: CI
 
-# OAP image for smoke-oap must be a literal here (services.*.image cannot use env context).
+# OAP image for smoke-oap must be a literal in docker run (services.*.image cannot use env context).
 # Keep scripts/run-ci-github-like.ps1 $OapDockerImage in sync when bumping.
 on:
   push:
@@ -33,21 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: test
-    services:
-      # 10.2+ removed embedded H2; 9.7.x is the last line with reliable docker H2 for CI smoke.
-      oap:
-        image: apache/skywalking-oap-server:9.7.0
-        ports:
-          - 11800:11800
-        env:
-          SW_STORAGE: h2
-          SW_HEALTH_CHECKER: default
-        options: >-
-          --health-cmd "bash -c '(echo >/dev/tcp/127.0.0.1/11800) || exit 1'"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 30
-          --health-start-period 40s
     steps:
       - uses: actions/checkout@v5
 
@@ -58,8 +43,15 @@ jobs:
       - name: Pub get
         run: dart pub get --no-example
 
-      - name: Wait for OAP gRPC 11800
+      # Job-level docker (not services:) — same as scripts/run-ci-github-like.ps1 on the runner host.
+      - name: Start OAP (9.7.0 + H2)
         run: |
+          docker rm -f ci-oap 2>/dev/null || true
+          docker run -d --name ci-oap \
+            -p 11800:11800 \
+            -e SW_STORAGE=h2 \
+            -e SW_HEALTH_CHECKER=default \
+            apache/skywalking-oap-server:9.7.0
           for i in $(seq 1 90); do
             if (echo >/dev/tcp/127.0.0.1/11800) 2>/dev/null; then
               echo "OAP TCP 11800 open after ${i} attempts; warm-up 25s for gRPC..."
@@ -68,10 +60,10 @@ jobs:
             fi
             sleep 2
           done
-          echo "OAP gRPC 11800 not reachable (is OAP 10.1+ storage configured?)"
+          echo "OAP failed to listen on 11800; container logs:"
+          docker logs ci-oap || true
           exit 1
 
-      # Precompile so smoke does not sit in `dart run` JIT (can look like a hang on GHA).
       - name: Compile verify_native
         run: dart compile exe -o /tmp/verify_native bin/verify_native.dart
 
@@ -90,4 +82,10 @@ jobs:
               sleep 10
             fi
           done
+          echo "verify_native failed; OAP logs:"
+          docker logs ci-oap || true
           exit 1
+
+      - name: Stop OAP
+        if: always()
+        run: docker rm -f ci-oap 2>/dev/null || true
