@@ -10,6 +10,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# Keep in sync with .github/workflows/ci.yml env.OAP_DOCKER_IMAGE
+$OapDockerImage = 'apache/skywalking-oap-server:10.1.0'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $root
 
@@ -69,7 +71,7 @@ $runCode = Invoke-DockerQuiet @(
     'run', '-d', '--name', $container,
     '-p', '11800:11800',
     '-e', 'SW_HEALTH_CHECKER=default',
-    'apache/skywalking-oap-server:10.1.0'
+    $OapDockerImage
 )
 if ($runCode -ne 0) { throw "docker run OAP failed (exit $runCode)" }
 

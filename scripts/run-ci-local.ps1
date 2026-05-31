@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$OapDockerImage = 'apache/skywalking-oap-server:10.1.0'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
 Write-Host '=== CI: pub get (package only, skip example/) ===' -ForegroundColor Cyan
@@ -46,9 +47,8 @@ Invoke-DockerQuiet @('rm', '-f', $container) | Out-Null
 $runCode = Invoke-DockerQuiet @(
     'run', '-d', '--name', $container,
     '-p', '11800:11800',
-    '-e', 'SW_STORAGE=h2',
     '-e', 'SW_HEALTH_CHECKER=default',
-    'apache/skywalking-oap-server:10.2.0'
+    $OapDockerImage
 )
 if ($runCode -ne 0) { throw "docker run failed (exit $runCode)" }
 

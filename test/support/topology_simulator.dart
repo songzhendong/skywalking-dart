@@ -38,9 +38,9 @@ abstract final class TopologySimulator {
     const beQueryOp = 'Mysql/JDBC/Query';
     const cacheOp = 'Redis/GET';
 
-    final appExitPeer = 'xt-gateway:8080';
-    final gwExitPeer = 'xt-backend:8080';
-    final beCachePeer = 'xt-redis:6379';
+    final appExitPeer = '$gatewayService:8080';
+    final gwExitPeer = '$backendService:8080';
+    final beCachePeer = '$cacheService:6379';
     final beDbPeer = '$databasePeer:3306';
 
   // --- app tier ---

@@ -35,6 +35,7 @@ SkyWalking **native gRPC** agent for **Dart & Flutter**: Trace (Segment), Meter,
 | [doc/OPEN_SOURCE.md](doc/OPEN_SOURCE.md) | Standalone use without xt_open_app backend |
 | [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md) | OAP `Layer.DART`, meter-analyzer, gRPC 11800 |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | CI commands, PR checklist |
 | [doc/releases/README.md](doc/releases/README.md) | Local CI (simulate GitHub Actions) |
 
 ## Install
@@ -46,7 +47,7 @@ dependencies:
   skywalking_dart:
     git:
       url: https://github.com/songzhendong/skywalking-dart.git
-      ref: v0.2.2
+      ref: v0.2.3
 ```
 
 **Path** (monorepo):

@@ -1,6 +1,6 @@
 {
-    "name": "skywalking_flutter_example",
-    "short_name": "skywalking_flutter_example",
+    "name": "skywalking_dart_example",
+    "short_name": "skywalking_dart_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

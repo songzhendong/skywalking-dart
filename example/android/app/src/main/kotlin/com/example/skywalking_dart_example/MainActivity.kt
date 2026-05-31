@@ -1,4 +1,4 @@
-package com.example.skywalking_flutter_example
+package com.example.skywalking_dart_example
 
 import io.flutter.embedding.android.FlutterActivity
 

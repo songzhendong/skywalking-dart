@@ -1,11 +1,16 @@
-# 归档脚本（OTLP 时代遗留）
+# Archived scripts (historical only)
 
-仅作历史参考，**勿用于 nativeFull 发版流程**。
+**Do not use for nativeFull releases or CI.** Kept for repository history.
 
-| 文件 | 说明 |
+| File | Note |
 |------|------|
-| `commit-msg-clean.txt` / `commit-msg-amend.txt` | 首版 OTLP Agent 提交模板 |
-| `rewrite-push-clean.bat` / `rollback-to-eec85b3.bat` | 旧仓库重写/回滚 |
-| `rewrite-main-without-coauthor.bat` | 去掉 Co-authored-by 的一次性脚本 |
+| `commit-msg-*.txt` | Old commit message templates |
+| `rewrite-*.bat` / `rollback-*.bat` | One-time git history rewrites |
+| `push-release.bat` | Legacy release (0.1.x) |
+| `push_to_github.ps1` / `strip-cursor-coauthor.py` | Maintainer-only git helpers |
 
-当前发版见上级 `scripts/push-release.bat`、`commit-msg-native-full.txt`。
+**Current workflow**
+
+- CI: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+- Local CI: [`../run-ci-github-like.ps1`](../run-ci-github-like.ps1)
+- Releases: [`../create-github-release.ps1`](../create-github-release.ps1) + [doc/releases/](../../doc/releases/)

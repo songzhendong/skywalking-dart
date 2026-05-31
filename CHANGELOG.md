@@ -2,6 +2,13 @@
 
 Release notes for GitHub tags: [doc/releases/](doc/releases/).
 
+## 0.2.3
+
+- fix: `TopologySimulator` peer hosts use service parameters (`demo-gateway`, not hard-coded `xt-*`).
+- chore: CI smoke OAP image `10.1.0` (10.2+ removed embedded H2); `checkout@v5`; `dart pub get --no-example`.
+- docs: `CONTRIBUTING.md`, OAP storage notes; example app display name `skywalking_dart_example`.
+- chore: move one-off release/commit scripts under `scripts/archive/`.
+
 ## 0.2.2
 
 - Move `TopologySimulator` to `test/support/` (smoke / unit tests only).

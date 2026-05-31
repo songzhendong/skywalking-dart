@@ -3,6 +3,7 @@
 # Usage: ./scripts/run-ci-github-like.sh [--skip-smoke]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+OAP_IMAGE="${OAP_DOCKER_IMAGE:-apache/skywalking-oap-server:10.1.0}"
 cd "$ROOT"
 SKIP_SMOKE=0
 [[ "${1:-}" == "--skip-smoke" ]] && SKIP_SMOKE=1
@@ -29,7 +30,7 @@ CONTAINER=skywalking-dart-ci-oap
 docker rm -f "$CONTAINER" 2>/dev/null || true
 docker run -d --name "$CONTAINER" -p 11800:11800 \
   -e SW_HEALTH_CHECKER=default \
-  apache/skywalking-oap-server:10.1.0
+  "$OAP_IMAGE"
 
 cleanup() {
   docker stop -t 3 "$CONTAINER" 2>/dev/null || true

@@ -2,6 +2,8 @@
 
 Flutter 示例：通过 **gRPC 11800** 上报 Trace + Meter。
 
+> **Note:** GitHub CI does not build this app (`dart pub get --no-example`). Run locally with Flutter SDK.
+
 ## 前提
 
 - OAP 已监听 `0.0.0.0:11800`

@@ -15,7 +15,7 @@ dependencies:
   skywalking_dart:
     git:
       url: https://github.com/songzhendong/skywalking-dart.git
-      ref: v0.2.2   # 或固定 commit SHA
+      ref: v0.2.3   # 或固定 commit SHA
 ```
 
 ## 验证

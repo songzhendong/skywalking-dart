@@ -2,6 +2,16 @@
 
 Align OAP with the Flutter agent: **native gRPC 11800** (Trace + Meter + Log), service layer **DART**.
 
+## OAP version & storage (important)
+
+| Use case | OAP version | Storage |
+|----------|-------------|---------|
+| **GitHub CI smoke** | `apache/skywalking-oap-server:10.1.0` | Default embedded (see workflow) |
+| **Local quick try** | 10.1.x standalone Docker | Default |
+| **Production / 10.2+** | 10.2.0+ | **BanyanDB or Elasticsearch** — [H2 removed in 10.2](https://skywalking.apache.org/events/remove-jdbc-as-storage/) |
+
+Do **not** set `SW_STORAGE=h2` on OAP **10.2.0+**; the process may never listen on **11800**.
+
 ## 1. `application.yml` (server-starter)
 
 ```yaml
