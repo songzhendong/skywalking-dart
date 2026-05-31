@@ -24,7 +24,7 @@ SkyWalking **native gRPC** agent for **Dart & Flutter**: Trace (Segment), Meter,
 
 - `SkywalkingAgent` → native tracer / meter / logs / `httpClient()` (sw8 propagation)
 - `AgentConfig.fromEnvironment` + `--dart-define` (Flutter-friendly)
-- CLI smoke: `bin/verify_native.dart`, `bin/verify_native_full.dart` (in consuming apps)
+- CLI smoke: `bin/verify_native.dart` (topology demo or `--quick`)
 - OAP meter rules: [doc/oap/dart-native-meter.yaml](doc/oap/dart-native-meter.yaml)
 
 ## Documentation
@@ -32,6 +32,7 @@ SkyWalking **native gRPC** agent for **Dart & Flutter**: Trace (Segment), Meter,
 | Doc | Description |
 |-----|-------------|
 | [doc/USAGE.md](doc/USAGE.md) | Install, defines, API, troubleshooting (**简体中文**) |
+| [doc/OPEN_SOURCE.md](doc/OPEN_SOURCE.md) | Standalone use without xt_open_app backend |
 | [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md) | OAP `Layer.DART`, meter-analyzer, gRPC 11800 |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
@@ -44,7 +45,7 @@ dependencies:
   skywalking_dart:
     git:
       url: https://github.com/songzhendong/skywalking-dart.git
-      ref: main
+      ref: v0.2.2
 ```
 
 **Path** (monorepo):
@@ -52,7 +53,7 @@ dependencies:
 ```yaml
 dependencies:
   skywalking_dart:
-    path: ../tools/skywalking-dart
+    path: packages/skywalking-dart
 ```
 
 ## Quick start (Flutter)
@@ -112,6 +113,9 @@ flutter run \
 | `APP_VERSION` | Instance / build version (Browser-style charts) |
 | `SKYWALKING_ENABLED=false` | Disable agent |
 | `SKYWALKING_METRICS_ENABLED=false` | Trace + logs only |
+| `SKYWALKING_FLUSH_INTERVAL_SEC` | Periodic flush (default `5`) |
+| `SKYWALKING_MAX_QUEUE_SIZE` | Drop oldest when queue full (default `512`) |
+| `SKYWALKING_LOG_SAMPLE_RATE` | Sample non-ERROR logs `0–1` (ERROR always kept) |
 
 Legacy values `otlp`, `hybrid`, `SKYWALKING_OTLP_ENDPOINT` are **ignored** (mapped to `nativeFull`).
 
@@ -127,6 +131,12 @@ $env:SW_AGENT_COLLECTOR_BACKEND_SERVICES = "127.0.0.1:11800"
 $env:SKYWALKING_SERVICE_NAME = "xt-open-app"
 dart run bin/verify_native.dart
 ```
+
+## Standalone vs xt_open_app
+
+This package **does not require** the [xt_open_app](https://github.com/songzhendong/xt_open_app) backend. You only need **SkyWalking OAP** on gRPC **11800** with DART layer + meter rules ([OAP_SETUP.md](doc/oap/OAP_SETUP.md)).
+
+[xt_open_app](https://github.com/songzhendong/xt_open_app) is a reference Flutter app (extra `SkywalkingMonitoring` helpers, PC dev settings, LAN scripts). See [doc/USAGE.md §9](doc/USAGE.md#9-与-xt_open_app-集成可选).
 
 ## License
 

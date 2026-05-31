@@ -1,4 +1,4 @@
-/// Shared metrics API for OTLP and SkyWalking native gRPC exporters.
+/// Shared metrics API for SkyWalking native gRPC Meter (11800).
 abstract interface class AgentMeter {
   void addCounter(
     String name, {

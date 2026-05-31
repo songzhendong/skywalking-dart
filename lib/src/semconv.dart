@@ -35,7 +35,7 @@ abstract final class Semconv {
   static const screenName = 'screen.name';
 
   /// `{METHOD} {path}` — recommended HTTP span name.
-  // OTLP metrics (OpenTelemetry semantic conventions for HTTP client)
+  // Native Meter names (HTTP client semantics)
   static const metricHttpClientRequestDuration = 'http.client.request.duration';
   static const metricHttpClientRequests = 'http.client.requests';
 

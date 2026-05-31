@@ -2,15 +2,13 @@
 enum AgentMode {
   nativeFull;
 
-  /// Legacy values map to [nativeFull]; only native gRPC is supported.
+  /// Ignores [raw] / [fallback]; only [nativeFull] is supported (gRPC 11800).
   static AgentMode parse(String? raw, {AgentMode fallback = AgentMode.nativeFull}) {
     return AgentMode.nativeFull;
   }
 }
 
 extension AgentModeX on AgentMode {
-  bool get usesOtlpTraces => false;
-
   bool get usesNativeTraces => true;
 
   bool get injectSw8 => true;

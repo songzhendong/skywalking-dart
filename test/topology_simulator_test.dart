@@ -1,6 +1,6 @@
 import 'package:skywalking_dart/src/agent/common/id_generator.dart';
 import 'package:skywalking_dart/src/agent/native/segment_proto_codec.dart';
-import 'package:skywalking_dart/src/agent/native/topology_simulator.dart';
+import 'support/topology_simulator.dart';
 import 'package:test/test.dart';
 
 void main() {

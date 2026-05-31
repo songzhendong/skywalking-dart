@@ -16,15 +16,9 @@ class AgentConfig {
   final TelemetryChannel metricsChannel;
   final TelemetryChannel logsChannel;
 
-  bool get usesOtlpTraces => false;
-
   bool get usesNativeTraces => true;
 
-  bool get usesOtlpMetrics => false;
-
   bool get usesNativeMetrics => metricsChannel == TelemetryChannel.native;
-
-  bool get usesOtlpLogs => false;
 
   bool get usesNativeLogs => logsChannel == TelemetryChannel.native;
 

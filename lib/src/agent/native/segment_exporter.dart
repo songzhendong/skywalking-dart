@@ -3,6 +3,7 @@ import 'dart:async';
 import '../common/id_generator.dart';
 import 'grpc_trace_client.dart';
 import 'native_config.dart';
+import 'native_export_queue.dart';
 import 'native_span.dart';
 
 /// Batches and exports native SkyWalking segments via gRPC.
@@ -31,10 +32,13 @@ class SegmentExporter {
 
   void enqueue(NativeSpanData span) {
     if (_closed) return;
-    _queue.add(span);
-    if (_queue.length >= config.maxBatchSize) {
-      unawaited(flush());
-    }
+    enqueueCapped(
+      _queue,
+      span,
+      maxQueueSize: config.maxQueueSize,
+      maxBatchSize: config.maxBatchSize,
+      onReachBatchSize: () => unawaited(flush()),
+    );
   }
 
   void enqueueAll(Iterable<NativeSpanData> spans) {

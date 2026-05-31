@@ -1,5 +1,5 @@
 name: skywalking_dart_example
-description: Example Flutter app for SkyWalking OTLP agent.
+description: Example Flutter app for SkyWalking nativeFull agent (gRPC 11800).
 publish_to: none
 
 environment:

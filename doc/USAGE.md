@@ -7,7 +7,7 @@ SkyWalking **原生 gRPC 11800** Dart/Flutter Agent（**仅 `nativeFull`**：Tra
 ```yaml
 dependencies:
   skywalking_dart:
-    path: ../tools/skywalking-dart   # 或 git 依赖
+    path: packages/skywalking-dart   # monorepo；或 git 依赖
 ```
 
 ```bash
@@ -62,6 +62,10 @@ flutter run \
 | `SKYWALKING_SERVICE_NAME` | 服务名 |
 | `APP_VERSION` | 实例/构建版本（Horizon 构建版本图） |
 | `SKYWALKING_ENABLED` | `false` 关闭 Agent |
+| `SKYWALKING_FLUSH_INTERVAL_SEC` | 定时 flush 间隔（默认 `5`） |
+| `SKYWALKING_MAX_BATCH_SIZE` | 单批条数上限，触达即 flush（默认 `32`） |
+| `SKYWALKING_MAX_QUEUE_SIZE` | 内存队列上限，超出丢弃最旧（默认 `512`） |
+| `SKYWALKING_LOG_SAMPLE_RATE` | 非 ERROR 日志采样率 `0–1`（默认 `1`；ERROR 始终上报） |
 
 ## 5. API 摘要
 
@@ -97,6 +101,17 @@ dart run bin/verify_native.dart --quick
 | 无构建版本 | 注入非空 `APP_VERSION` |
 | `Call SkywalkingAgent.init()` | `main` 中先 `init` |
 
-## 9. 与 xt_open_app 集成
+## 9. 与 xt_open_app 集成（可选）
 
-业务封装：`lib/monitoring/skywalking_monitoring.dart`。局域网一键运行：`tools/run-flutter-lan.ps1`。端到端说明：`docs/skywalking_e2e.md`。
+本仓库 **可单独使用**（任意 Flutter/Dart + OAP 11800）。  
+[xt_open_app](https://github.com/songzhendong/xt_open_app) 为参考实现：
+
+| 组件 | 路径 |
+|------|------|
+| 业务封装 | `lib/monitoring/skywalking_monitoring.dart` |
+| 冒烟脚本 | `tool/skywalking/verify_native_full.dart` |
+| 局域网运行 | `scripts/dev/run-flutter-lan.ps1` |
+| 端到端 | `docs/skywalking_e2e.md` |
+| PC 注入配置 | Spring Boot `DevFlutter*` + 运营端「全链路监控」 |
+
+开源使用者只需：依赖本包 + OAP；**不必**部署 xt 后端。

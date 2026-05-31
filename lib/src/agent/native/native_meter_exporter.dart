@@ -3,6 +3,7 @@ import 'dart:async';
 import '../common/agent_meter.dart';
 import 'grpc_meter_client.dart';
 import 'native_config.dart';
+import 'native_export_queue.dart';
 import 'native_meter_sample.dart';
 
 String _nativeMetricName(String name) => name.replaceAll('.', '_');
@@ -66,11 +67,19 @@ class NativeMeterExporter {
     if (_closed) return;
     final base = _nativeMetricName(name);
     final attrs = _nativeAttributes(attributes);
-    _queue.add(NativeMeterSample(name: '${base}_sum', value: value, attributes: attrs));
-    _queue.add(NativeMeterSample(name: '${base}_count', value: 1, attributes: attrs));
-    if (_queue.length >= config.maxBatchSize) {
-      unawaited(flush());
-    }
+    enqueueCapped(
+      _queue,
+      NativeMeterSample(name: '${base}_sum', value: value, attributes: attrs),
+      maxQueueSize: config.maxQueueSize,
+      maxBatchSize: config.maxBatchSize,
+    );
+    enqueueCapped(
+      _queue,
+      NativeMeterSample(name: '${base}_count', value: 1, attributes: attrs),
+      maxQueueSize: config.maxQueueSize,
+      maxBatchSize: config.maxBatchSize,
+      onReachBatchSize: () => unawaited(flush()),
+    );
   }
 
   Future<bool> flush() async {

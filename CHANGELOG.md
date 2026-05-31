@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.2
+
+- Move `TopologySimulator` to `test/support/` (smoke / unit tests only).
+- Runtime tuning via dart-define / env: `SKYWALKING_FLUSH_INTERVAL_SEC`, `SKYWALKING_MAX_BATCH_SIZE`, `SKYWALKING_MAX_QUEUE_SIZE`, `SKYWALKING_LOG_SAMPLE_RATE` (ERROR logs always kept).
+- Archive OTLP-era scripts under `scripts/archive/`.
+
+## 0.2.1
+
+- Remove deprecated `usesOtlpTraces` / `usesOtlpMetrics` / `usesOtlpLogs` getters (`AgentConfig`, `AgentMode`).
+- Example and docs: native gRPC only (no OTLP wording).
+
 ## 0.2.0
 
 - **Breaking:** OTLP / hybrid / `dart-otlp` removed; agent is **nativeFull only** (gRPC 11800: Trace + Meter + Log).

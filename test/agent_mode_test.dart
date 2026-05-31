@@ -14,7 +14,6 @@ void main() {
   test('nativeFull uses native gRPC for trace metrics and logs', () {
     const mode = AgentMode.nativeFull;
     expect(mode.usesNativeTraces, isTrue);
-    expect(mode.usesOtlpTraces, isFalse);
     expect(mode.injectSw8, isTrue);
   });
 
@@ -29,7 +28,7 @@ void main() {
     expect(cfg.mode, AgentMode.nativeFull);
     expect(cfg.metricsChannel, TelemetryChannel.native);
     expect(cfg.logsChannel, TelemetryChannel.native);
-    expect(cfg.usesOtlpMetrics, isFalse);
+    expect(cfg.usesNativeMetrics, isTrue);
     expect(cfg.native.serviceInstanceId, '1.0.0+1');
   });
 

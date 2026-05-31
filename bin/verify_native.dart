@@ -6,7 +6,7 @@
 import 'dart:io';
 
 import 'package:skywalking_dart/skywalking_dart.dart';
-import 'package:skywalking_dart/src/agent/native/topology_simulator.dart';
+import '../test/support/topology_simulator.dart';
 
 Future<void> main(List<String> args) async {
   final quick = args.contains('--quick');

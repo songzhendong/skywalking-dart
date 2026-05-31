@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'grpc_log_client.dart';
 import 'native_config.dart';
+import 'native_export_queue.dart';
 import 'native_log_entry.dart';
 
 /// Exports logs via SkyWalking native gRPC `LogReportService.collect`.
@@ -26,10 +27,14 @@ class NativeLogExporter {
 
   void enqueue(NativeLogEntry entry) {
     if (_closed) return;
-    _queue.add(entry);
-    if (_queue.length >= config.maxBatchSize) {
-      unawaited(flush());
-    }
+    if (!shouldSampleLog(entry, config.logSampleRate)) return;
+    enqueueCapped(
+      _queue,
+      entry,
+      maxQueueSize: config.maxQueueSize,
+      maxBatchSize: config.maxBatchSize,
+      onReachBatchSize: () => unawaited(flush()),
+    );
   }
 
   Future<bool> flush() async {

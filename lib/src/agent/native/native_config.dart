@@ -12,6 +12,8 @@ class NativeAgentConfig {
     this.serviceLayer = SkywalkingDartLayer.name,
     this.flushInterval = const Duration(seconds: 5),
     this.maxBatchSize = 32,
+    this.maxQueueSize = 512,
+    this.logSampleRate = 1.0,
     this.tracesEnabled = true,
     this.componentId = 5019,
   });
@@ -24,6 +26,10 @@ class NativeAgentConfig {
   final String serviceLayer;
   final Duration flushInterval;
   final int maxBatchSize;
+  /// Max pending items per exporter queue; oldest dropped when exceeded.
+  final int maxQueueSize;
+  /// Fraction of non-ERROR logs to keep in `(0,1]`; ERROR always kept.
+  final double logSampleRate;
   final bool tracesEnabled;
   final int componentId;
 
@@ -110,14 +116,54 @@ class NativeAgentConfig {
         ]) ??
         'unknown';
 
+    final flushSec = _parsePositiveInt(
+      pick(const [
+        'SKYWALKING_FLUSH_INTERVAL_SEC',
+        'SW_AGENT_FLUSH_INTERVAL_SEC',
+      ]),
+      fallback: 5,
+    );
+    final maxBatch = _parsePositiveInt(
+      pick(const ['SKYWALKING_MAX_BATCH_SIZE']),
+      fallback: 32,
+    );
+    final maxQueue = _parsePositiveInt(
+      pick(const ['SKYWALKING_MAX_QUEUE_SIZE']),
+      fallback: 512,
+    );
+    final logSample = _parseSampleRate(
+      pick(const ['SKYWALKING_LOG_SAMPLE_RATE']),
+      fallback: 1.0,
+    );
+
     return NativeAgentConfig(
       serviceName: serviceName,
       backendAddress: backend,
       serviceInstance: pick(const ['SW_AGENT_INSTANCE_NAME']),
       serviceVersion: serviceVersion,
       serviceLayer: layer,
+      flushInterval: Duration(seconds: flushSec),
+      maxBatchSize: maxBatch,
+      maxQueueSize: maxQueue,
+      logSampleRate: logSample,
       tracesEnabled: tracesEnabled,
     );
+  }
+
+  static int _parsePositiveInt(String? raw, {required int fallback}) {
+    if (raw == null || raw.isEmpty) return fallback;
+    final n = int.tryParse(raw.trim());
+    if (n == null || n < 1) return fallback;
+    return n;
+  }
+
+  static double _parseSampleRate(String? raw, {required double fallback}) {
+    if (raw == null || raw.isEmpty) return fallback;
+    final n = double.tryParse(raw.trim());
+    if (n == null) return fallback;
+    if (n <= 0) return 0;
+    if (n >= 1) return 1;
+    return n;
   }
 
   static bool _looksLikeTunnelHost(String host) {

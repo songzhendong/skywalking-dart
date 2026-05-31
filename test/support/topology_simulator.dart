@@ -1,6 +1,6 @@
-import '../common/id_generator.dart';
-import 'native_segment_ref.dart';
-import 'native_span.dart';
+import 'package:skywalking_dart/src/agent/common/id_generator.dart';
+import 'package:skywalking_dart/src/agent/native/native_segment_ref.dart';
+import 'package:skywalking_dart/src/agent/native/native_span.dart';
 
 /// Builds multi-service native segments for OAP topology smoke tests.
 abstract final class TopologySimulator {
