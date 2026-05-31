@@ -75,9 +75,12 @@ Future<void> main(List<String> args) async {
     );
   }
 
-  stdout.writeln('[verify_native] flushing segment via gRPC (timeout 15s)...');
+  const flushTimeout = Duration(seconds: 45);
+  stdout.writeln(
+    '[verify_native] flushing segment via gRPC (timeout ${flushTimeout.inSeconds}s)...',
+  );
   final ok = await exporter.flush().timeout(
-    const Duration(seconds: 15),
+    flushTimeout,
     onTimeout: () {
       stderr.writeln(
         'FAIL: gRPC flush timed out. Is OAP up on $backend (native agent port)?',

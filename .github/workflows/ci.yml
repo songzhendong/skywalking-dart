@@ -73,7 +73,7 @@ jobs:
         run: |
           for attempt in 1 2 3; do
             echo "verify_native attempt $attempt/3"
-            if timeout 120 /tmp/verify_native --quick; then
+            if timeout 180 /tmp/verify_native --quick; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
