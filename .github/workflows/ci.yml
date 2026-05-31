@@ -40,6 +40,7 @@ jobs:
         ports:
           - 11800:11800
         env:
+          SW_STORAGE: h2
           SW_HEALTH_CHECKER: default
         options: >-
           --health-cmd "bash -c '(echo >/dev/tcp/127.0.0.1/11800) || exit 1'"
@@ -61,8 +62,8 @@ jobs:
         run: |
           for i in $(seq 1 90); do
             if (echo >/dev/tcp/127.0.0.1/11800) 2>/dev/null; then
-              echo "OAP TCP 11800 open after ${i} attempts; warm-up 20s for gRPC..."
-              sleep 20
+              echo "OAP TCP 11800 open after ${i} attempts; warm-up 45s for gRPC..."
+              sleep 45
               exit 0
             fi
             sleep 2
@@ -77,7 +78,7 @@ jobs:
         run: |
           for attempt in 1 2 3; do
             echo "verify_native attempt $attempt/3"
-            if dart run --no-pub bin/verify_native.dart --quick; then
+            if dart run bin/verify_native.dart --quick; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
