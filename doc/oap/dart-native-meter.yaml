@@ -1,0 +1,132 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Native Meter（gRPC 11800）→ Horizon meter_flutter_*。
+# App 业务指标名见 lib/monitoring/app_metrics.dart（下划线，与 MAL exp 一致）。
+
+filter: "{ tags -> tags.service != null && tags.service != '' }"
+metricPrefix: meter_flutter
+expSuffix: service(['service'], Layer.DART)
+
+metricsRules:
+  # --- Agent HTTP（Semconv 点分 → OAP 下划线）---
+  - name: http_requests_total
+    exp: http_client_requests.sum(['service'])
+  - name: http_requests_rpm
+    exp: http_client_requests.sum(['service']).rate('PT1M')
+  - name: http_latency_avg_ms
+    exp: http_client_request_duration_sum.sum(['service']).safeDiv(http_client_request_duration_count.sum(['service']))
+
+  # --- Horizon Service 页常用 ---
+  - name: screen_views_total
+    exp: app_screen_views.sum(['service'])
+  - name: cold_start_duration_avg_ms
+    exp: app_cold_start_duration_sum.sum(['service']).safeDiv(app_cold_start_duration_count.sum(['service']))
+  - name: auth_sms_send_total
+    exp: app_auth_sms_send.sum(['service'])
+  - name: auth_login_success_total
+    exp: app_auth_login.tag({tags -> tags.result == 'ok'}).sum(['service'])
+  - name: session_start_total
+    exp: app_session_start.sum(['service'])
+  - name: lifecycle_events_total
+    exp: app_lifecycle_events.sum(['service'])
+  - name: exception_count_total
+    exp: exception_count.sum(['service'])
+
+  # --- 启动 / Feed ---
+  - name: bootstrap_duration_avg_ms
+    exp: app_bootstrap_duration_sum.sum(['service']).safeDiv(app_bootstrap_duration_count.sum(['service']))
+  - name: feed_prefetch_total
+    exp: app_feed_prefetch.sum(['service'])
+  - name: feed_prefetch_duration_avg_ms
+    exp: app_feed_prefetch_duration_sum.sum(['service']).safeDiv(app_feed_prefetch_duration_count.sum(['service']))
+  - name: feed_load_total
+    exp: app_feed_load.sum(['service'])
+  - name: feed_load_duration_avg_ms
+    exp: app_feed_load_duration_sum.sum(['service']).safeDiv(app_feed_load_duration_count.sum(['service']))
+
+  # --- 视频 / 发布 / 搜索 ---
+  - name: video_play_total
+    exp: app_video_play.sum(['service'])
+  - name: video_play_error_total
+    exp: app_video_play_error.sum(['service'])
+  - name: video_play_duration_avg_ms
+    exp: app_video_play_duration_sum.sum(['service']).safeDiv(app_video_play_duration_count.sum(['service']))
+  - name: video_interaction_total
+    exp: app_video_interaction.sum(['service'])
+  - name: publish_total
+    exp: app_publish.sum(['service'])
+  - name: publish_duration_avg_ms
+    exp: app_publish_duration_sum.sum(['service']).safeDiv(app_publish_duration_count.sum(['service']))
+  - name: search_total
+    exp: app_search.sum(['service'])
+  - name: search_duration_avg_ms
+    exp: app_search_duration_sum.sum(['service']).safeDiv(app_search_duration_count.sum(['service']))
+
+  # --- 社交 / 消息 / 返利 / 直播 ---
+  - name: message_send_total
+    exp: app_message_send.sum(['service'])
+  - name: messages_inbox_total
+    exp: app_messages_inbox.sum(['service'])
+  - name: comment_post_total
+    exp: app_comment_post.sum(['service'])
+  - name: comment_reaction_total
+    exp: app_comment_reaction.sum(['service'])
+  - name: social_follow_total
+    exp: app_social_follow.sum(['service'])
+  - name: chat_thread_total
+    exp: app_chat_thread.sum(['service'])
+  - name: rebate_convert_total
+    exp: app_rebate_convert.sum(['service'])
+  - name: rebate_orders_total
+    exp: app_rebate_orders.sum(['service'])
+  - name: rebate_order_detail_total
+    exp: app_rebate_order_detail.sum(['service'])
+  - name: live_enter_total
+    exp: app_live_enter.sum(['service'])
+  - name: live_api_total
+    exp: app_live_api.sum(['service'])
+
+  # --- 个人 / 券 / 配置 / 插件 ---
+  - name: profile_load_total
+    exp: app_profile_load.sum(['service'])
+  - name: watch_history_total
+    exp: app_watch_history.sum(['service'])
+  - name: video_manage_total
+    exp: app_video_manage.sum(['service'])
+  - name: coupon_hub_total
+    exp: app_coupon_hub.sum(['service'])
+  - name: oauth_bind_total
+    exp: app_oauth_bind.sum(['service'])
+  - name: account_security_total
+    exp: app_account_security.sum(['service'])
+  - name: taobao_listing_total
+    exp: app_taobao_listing.sum(['service'])
+  - name: location_config_total
+    exp: app_location_config.sum(['service'])
+  - name: plugin_bundle_total
+    exp: app_plugin_bundle.sum(['service'])
+  - name: plugin_skin_total
+    exp: app_plugin_skin.sum(['service'])
+  - name: growth_sign_in_total
+    exp: app_growth_sign_in.sum(['service'])
+  - name: user_action_total
+    exp: app_user_action.sum(['service'])
+
+  # --- 冒烟 ---
+  - name: verify_events_total
+    exp: verify_events_total.sum(['service'])
+  - name: verify_bootstrap_duration_avg_ms
+    exp: verify_bootstrap_duration_sum.sum(['service']).safeDiv(verify_bootstrap_duration_count.sum(['service']))

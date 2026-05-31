@@ -1,0 +1,60 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Native Meter（gRPC 11800）按实例（构建版本）聚合 → meter_flutter_instance_*。
+# 实例名来自 MeterData.serviceInstance（App 侧 APP_VERSION / SW_AGENT_INSTANCE_NAME）。
+
+filter: "{ tags -> tags.service != null && tags.service != '' && tags.instance != null && tags.instance != '' }"
+metricPrefix: meter_flutter_instance
+expSuffix: instance(['service'], ['instance'], Layer.DART)
+
+metricsRules:
+  - name: http_requests_total
+    exp: http_client_requests.sum(['service', 'instance'])
+  - name: http_requests_rpm
+    exp: http_client_requests.sum(['service', 'instance']).rate('PT1M')
+  - name: http_latency_avg_ms
+    exp: http_client_request_duration_sum.sum(['service', 'instance']).safeDiv(http_client_request_duration_count.sum(['service', 'instance']))
+
+  - name: screen_views_total
+    exp: app_screen_views.sum(['service', 'instance'])
+  - name: cold_start_duration_avg_ms
+    exp: app_cold_start_duration_sum.sum(['service', 'instance']).safeDiv(app_cold_start_duration_count.sum(['service', 'instance']))
+  - name: auth_sms_send_total
+    exp: app_auth_sms_send.sum(['service', 'instance'])
+  - name: auth_login_success_total
+    exp: app_auth_login.tag({tags -> tags.result == 'ok'}).sum(['service', 'instance'])
+  - name: session_start_total
+    exp: app_session_start.sum(['service', 'instance'])
+  - name: lifecycle_events_total
+    exp: app_lifecycle_events.sum(['service', 'instance'])
+  - name: exception_count_total
+    exp: exception_count.sum(['service', 'instance'])
+
+  - name: bootstrap_duration_avg_ms
+    exp: app_bootstrap_duration_sum.sum(['service', 'instance']).safeDiv(app_bootstrap_duration_count.sum(['service', 'instance']))
+  - name: feed_prefetch_total
+    exp: app_feed_prefetch.sum(['service', 'instance'])
+  - name: feed_load_total
+    exp: app_feed_load.sum(['service', 'instance'])
+  - name: video_play_total
+    exp: app_video_play.sum(['service', 'instance'])
+  - name: search_total
+    exp: app_search.sum(['service', 'instance'])
+
+  - name: verify_events_total
+    exp: verify_events_total.sum(['service', 'instance'])
+  - name: verify_bootstrap_duration_avg_ms
+    exp: verify_bootstrap_duration_sum.sum(['service', 'instance']).safeDiv(verify_bootstrap_duration_count.sum(['service', 'instance']))

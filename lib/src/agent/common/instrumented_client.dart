@@ -6,25 +6,21 @@ import '../native/native_config.dart';
 import '../native/segment_exporter.dart';
 import '../native/sw8_context.dart';
 import '../native/sw8_propagator.dart';
-import '../otlp/otlp_span.dart';
-import '../otlp/otlp_trace_exporter.dart';
 import 'id_generator.dart';
 
-/// [http.Client] with optional OTLP spans, native Exit spans, and `sw8` injection.
+/// [http.Client] with native Exit spans, HTTP metrics, and `sw8` injection.
 class InstrumentedClient extends http.BaseClient {
   InstrumentedClient({
     required http.Client inner,
-    this.otlpExporter,
     this.nativeExporter,
     this.nativeConfig,
     this.meter,
-    this.injectSw8 = false,
+    this.injectSw8 = true,
     IdGenerator? idGenerator,
   })  : _inner = inner,
-        _ids = idGenerator ?? otlpExporter?.idGenerator ?? nativeExporter?.idGenerator;
+        _ids = idGenerator ?? nativeExporter?.idGenerator;
 
   final http.Client _inner;
-  final OtlpTraceExporter? otlpExporter;
   final SegmentExporter? nativeExporter;
   final NativeAgentConfig? nativeConfig;
   final AgentMeter? meter;
@@ -34,8 +30,8 @@ class InstrumentedClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final traceId = _ids?.traceId() ?? '0';
-    final otlpSpanId = _ids?.spanId() ?? '0';
-    final segmentId = _ids?.segmentId() ?? otlpSpanId;
+    final spanId = _ids?.spanId() ?? '0';
+    final segmentId = _ids?.segmentId() ?? spanId;
     final start = DateTime.now();
     final path = request.url.path.isEmpty ? '/' : request.url.path;
     final spanName = Semconv.httpSpanName(request.method, path);
@@ -71,15 +67,6 @@ class InstrumentedClient extends http.BaseClient {
       );
       final elapsed = DateTime.now().difference(start);
       final end = DateTime.now();
-      _recordOtlp(
-        name: spanName,
-        request: request,
-        traceId: traceId,
-        spanId: otlpSpanId,
-        start: start,
-        end: end,
-        statusCode: response.statusCode,
-      );
       _recordNative(
         operationName: spanName,
         traceId: traceId,
@@ -104,16 +91,6 @@ class InstrumentedClient extends http.BaseClient {
     } catch (e) {
       final elapsed = DateTime.now().difference(start);
       final end = DateTime.now();
-      _recordOtlp(
-        name: spanName,
-        request: request,
-        traceId: traceId,
-        spanId: otlpSpanId,
-        start: start,
-        end: end,
-        statusCode: 0,
-        error: e,
-      );
       _recordNative(
         operationName: spanName,
         traceId: traceId,
@@ -129,43 +106,6 @@ class InstrumentedClient extends http.BaseClient {
       _recordHttpMetrics(request, 0, elapsed, error: true);
       rethrow;
     }
-  }
-
-  void _recordOtlp({
-    required String name,
-    required http.BaseRequest request,
-    required String traceId,
-    required String spanId,
-    required DateTime start,
-    required DateTime end,
-    required int statusCode,
-    Object? error,
-  }) {
-    final exporter = otlpExporter;
-    if (exporter == null) return;
-    final attrs = Semconv.httpClientAttributes(
-      method: request.method,
-      url: request.url,
-      statusCode: statusCode,
-    );
-    if (error != null) {
-      attrs[Semconv.exceptionType] = error.runtimeType.toString();
-      attrs[Semconv.exceptionMessage] = error.toString();
-    }
-    exporter.enqueue(
-      OtlpSpanData(
-        name: name,
-        traceId: traceId,
-        spanId: spanId,
-        startTimeUnixNano: start.microsecondsSinceEpoch * 1000,
-        endTimeUnixNano: end.microsecondsSinceEpoch * 1000,
-        kind: OtlpSpanKind.client,
-        statusCode: error != null || statusCode >= 500
-            ? OtlpStatusCode.error
-            : OtlpStatusCode.ok,
-        attributes: attrs,
-      ),
-    );
   }
 
   void _recordNative({

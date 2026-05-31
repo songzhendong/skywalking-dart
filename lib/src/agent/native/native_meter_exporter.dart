@@ -7,16 +7,15 @@ import 'native_meter_sample.dart';
 
 String _nativeMetricName(String name) => name.replaceAll('.', '_');
 
-Map<String, String> _nativeAttributes(
-  NativeAgentConfig config,
-  Map<String, String> attributes,
-) {
-  final out = <String, String>{
-    // dart-native-meter.yaml filter: tags.service must be set.
-    'service': config.serviceName,
-  };
+Map<String, String> _nativeAttributes(Map<String, String> attributes) {
+  final out = <String, String>{};
   for (final entry in attributes.entries) {
-    out[entry.key.replaceAll('.', '_')] = entry.value;
+    final key = entry.key.replaceAll('.', '_');
+    // OAP SampleBuilder merges sample labels then injects service/instance from
+    // MeterData top-level fields; duplicate "service" in labels causes
+    // ImmutableMap conflict and drops the whole batch.
+    if (key == 'service' || key == 'instance') continue;
+    out[key] = entry.value;
   }
   return out;
 }
@@ -51,7 +50,7 @@ class NativeMeterExporter {
       NativeMeterSample(
         name: _nativeMetricName(name),
         value: delta.toDouble(),
-        attributes: _nativeAttributes(config, attributes),
+        attributes: _nativeAttributes(attributes),
       ),
     );
     if (_queue.length >= config.maxBatchSize) {
@@ -66,7 +65,7 @@ class NativeMeterExporter {
   }) {
     if (_closed) return;
     final base = _nativeMetricName(name);
-    final attrs = _nativeAttributes(config, attributes);
+    final attrs = _nativeAttributes(attributes);
     _queue.add(NativeMeterSample(name: '${base}_sum', value: value, attributes: attrs));
     _queue.add(NativeMeterSample(name: '${base}_count', value: 1, attributes: attrs));
     if (_queue.length >= config.maxBatchSize) {

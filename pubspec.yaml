@@ -1,5 +1,5 @@
 name: skywalking_dart
-description: OpenTelemetry OTLP/HTTP skywalking-dart agent for Dart and Flutter apps (SkyWalking OAP compatible).
+description: SkyWalking native gRPC agent for Dart and Flutter (Trace + Meter + Log @ 11800).
 version: 0.1.4
 license: Apache-2.0
 

@@ -1,0 +1,4 @@
+feat!: nativeFull-only agent (remove OTLP/hybrid)
+
+SkyWalking native gRPC 11800 for Trace, Meter, and Log.
+Remove agent/otlp, verify_otlp, dart-otlp rules; update docs and example.

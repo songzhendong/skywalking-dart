@@ -1,58 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:skywalking_dart/skywalking_dart.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  OtlpFlutter.init(
-    defaultServiceName: 'flutter-otlp-demo',
-    defaultEndpoint: 'http://127.0.0.1:12800',
-    defaultEnvironment: 'dev',
+  SkywalkingAgent.initFromEnvironment(
+    defaultServiceName: 'flutter-native-demo',
+    defaultNativeBackend: '127.0.0.1:11800',
+    dartDefines: const {
+      'SKYWALKING_AGENT_MODE': 'nativeFull',
+      'SKYWALKING_METRICS_ENABLED': 'true',
+    },
   );
 
-  runApp(const DemoApp());
+  runApp(const MyApp());
 }
 
-class DemoApp extends StatelessWidget {
-  const DemoApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'OTLP Agent Demo',
-      home: const DemoHomePage(),
+      title: 'SkyWalking Native Demo',
+      home: const DemoPage(),
     );
   }
 }
 
-class DemoHomePage extends StatefulWidget {
-  const DemoHomePage({super.key});
+class DemoPage extends StatefulWidget {
+  const DemoPage({super.key});
 
   @override
-  State<DemoHomePage> createState() => _DemoHomePageState();
+  State<DemoPage> createState() => _DemoPageState();
 }
 
-class _DemoHomePageState extends State<DemoHomePage> {
-  String _status = 'Ready';
+class _DemoPageState extends State<DemoPage> {
+  String _status = 'Tap to send native trace + meter';
 
   Future<void> _sendSample() async {
-    if (!OtlpAgent.isInitialized) {
-      setState(() => _status = 'Agent disabled (check SKYWALKING_ENABLED / endpoint)');
+    if (!SkywalkingAgent.isInitialized) {
+      setState(() => _status = 'Agent not initialized');
       return;
     }
-    setState(() => _status = 'Sending...');
     try {
-      final agent = OtlpAgent.instance;
-      await agent.tracer.withSpan('demo.button_tap', (_) async {
-        await Future<void>.delayed(const Duration(milliseconds: 80));
-        agent.tracer.recordEvent(
-          name: 'demo.screen_view',
-          attributes: {Semconv.screenName: 'home'},
-        );
-      });
-      agent.meter.addCounter('demo.button.clicks');
+      final agent = SkywalkingAgent.instance;
+      agent.nativeTracer.recordSpan(
+        name: 'demo.button.tap',
+        duration: const Duration(milliseconds: 5),
+      );
+      agent.meter?.addCounter('demo.taps', attributes: {'screen': 'home'});
       await agent.flush();
-      setState(() => _status = 'Sent. Check Zipkin for flutter-otlp-demo');
+      setState(() => _status = 'Sent. Check Horizon DART layer for flutter-native-demo');
     } catch (e) {
       setState(() => _status = 'Error: $e');
     }
@@ -60,21 +59,19 @@ class _DemoHomePageState extends State<DemoHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final backend = SkywalkingAgent.isInitialized
+        ? SkywalkingAgent.instance.config.native.backendAddress
+        : '(disabled)';
     return Scaffold(
-      appBar: AppBar(title: const Text('OTLP Agent')),
+      appBar: AppBar(title: const Text('Native Agent Demo')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'OTLP/HTTP → ${OtlpAgent.isInitialized ? OtlpAgent.instance.config.otlpEndpoint : "(disabled)"}',
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _sendSample,
-              child: const Text('Send sample trace + metric'),
-            ),
+            Text('gRPC → $backend', style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: _sendSample, child: const Text('Send sample')),
             const SizedBox(height: 16),
             Text(_status),
           ],

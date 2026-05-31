@@ -1,9 +1,0 @@
-# DEPRECATED — use dart-otlp.yaml (Layer.DART). Kept as a filename alias for older docs.
-
-filter: "{ tags -> tags.telemetry_sdk_name == 'skywalking-dart' && tags.telemetry_sdk_language == 'dart' }"
-metricPrefix: meter_flutter
-expSuffix: service(['service_name'], Layer.DART)
-
-metricsRules:
-  - name: verify_events_total
-    exp: verify_events_total.sum(['service_name'])

@@ -10,68 +10,34 @@
 [![GitHub](https://img.shields.io/badge/GitHub-songzhendong%2Fskywalking--dart-blue)](https://github.com/songzhendong/skywalking-dart)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-OpenTelemetry **OTLP/HTTP** **skywalking-dart** plugin for **traces** and **metrics**, compatible with [Apache SkyWalking OAP](https://skywalking.apache.org/) (`receiver-otel` on port **12800**).
+SkyWalking **native gRPC** agent for **Dart & Flutter**: Trace (Segment), Meter, and Log on port **11800**, aligned with the Java agent and Horizon **Layer.DART** dashboards.
 
 | Item | Value |
 |------|--------|
 | Dart package | `skywalking_dart` |
 | Runtime | Dart / Flutter apps |
-| Protocol | `POST /v1/traces`, `POST /v1/metrics` (HTTP JSON) |
-| Version | 0.1.4 |
+| Protocol | gRPC **11800** (`Segment`, `MeterReportService`, `LogReportService`) |
+| Agent mode | **`nativeFull` only** (OTLP / hybrid removed) |
 | SDK | Dart `>=3.0.0` |
 
 ## Features
 
-- Standard OTLP over HTTP JSON (OpenTelemetry-aligned env vars)
-- `OtlpAgent` → `tracer` / `meter` / `httpClient()`
-- HTTP client spans + `http.client.requests` / `http.client.request.duration`
-- `OtlpFlutter.init()` reads `--dart-define` (Flutter-friendly)
-- CLI smoke test: `bin/verify_otlp.dart`
-- Sample OAP MAL rules: [doc/oap/dart-otlp.yaml](doc/oap/dart-otlp.yaml)
-
-## Screenshots (Horizon UI)
-
-Examples use service **`xt-open-app`** and OAP rule **`dart/dart-otlp`**. Setup: [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md), [doc/USAGE.md](doc/USAGE.md).
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-metrics-inspect.png">
-        <img src="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-metrics-inspect.png" width="420" alt="Metrics inspect"/>
-      </a>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-trace-parent-child.png">
-        <img src="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-trace-parent-child.png" width="420" alt="Trace parent-child"/>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-zipkin-traces-list.png">
-        <img src="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-zipkin-traces-list.png" width="420" alt="Trace list"/>
-      </a>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-zipkin-trace-detail.png">
-        <img src="https://github.com/songzhendong/skywalking-dart/raw/main/doc/images/horizon-zipkin-trace-detail.png" width="420" alt="Span detail"/>
-      </a>
-    </td>
-  </tr>
-</table>
+- `SkywalkingAgent` → native tracer / meter / logs / `httpClient()` (sw8 propagation)
+- `AgentConfig.fromEnvironment` + `--dart-define` (Flutter-friendly)
+- CLI smoke: `bin/verify_native.dart`, `bin/verify_native_full.dart` (in consuming apps)
+- OAP meter rules: [doc/oap/dart-native-meter.yaml](doc/oap/dart-native-meter.yaml)
 
 ## Documentation
 
 | Doc | Description |
 |-----|-------------|
-| [doc/USAGE.md](doc/USAGE.md) | Full guide in **简体中文** (install, OAP, API, troubleshooting) |
-| [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md) | OAP `application.yml`, `Layer.DART`, rebuild |
-| [doc/oap/dart-otlp.yaml](doc/oap/dart-otlp.yaml) | OAP `dart-otlp` MAL rules sample |
+| [doc/USAGE.md](doc/USAGE.md) | Install, defines, API, troubleshooting (**简体中文**) |
+| [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md) | OAP `Layer.DART`, meter-analyzer, gRPC 11800 |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## Install
 
-**Git** (apps and SkyWalking-related repos):
+**Git**:
 
 ```yaml
 dependencies:
@@ -81,15 +47,13 @@ dependencies:
       ref: main
 ```
 
-**Path** (local):
+**Path** (monorepo):
 
 ```yaml
 dependencies:
   skywalking_dart:
-    path: ../skywalking-dart
+    path: ../tools/skywalking-dart
 ```
-
-Then resolve dependencies (`dart pub get`; Flutter apps may use `flutter pub get`).
 
 ## Quick start (Flutter)
 
@@ -100,75 +64,68 @@ import 'package:skywalking_dart/skywalking_dart.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  OtlpFlutter.init(
+  SkywalkingAgent.initFromEnvironment(
+    defaultNativeBackend: '192.168.1.10:11800',
     defaultServiceName: 'my-flutter-app',
-    defaultEndpoint: 'http://127.0.0.1:12800',
+    dartDefines: const {
+      'SKYWALKING_AGENT_MODE': 'nativeFull',
+      'SKYWALKING_METRICS_ENABLED': 'true',
+    },
   );
 
   runApp(const MyApp());
 }
 ```
 
-HTTP with auto instrumentation:
+HTTP with instrumentation:
 
 ```dart
-final client = OtlpAgent.instance.httpClient();
+final client = SkywalkingAgent.instance.httpClient();
 await client.get(Uri.parse('https://api.example.com/health'));
 ```
 
-Custom span + metric:
+Custom span + meter:
 
 ```dart
-await OtlpAgent.instance.tracer.withSpan('checkout', (_) async {
-  // business logic
-});
-OtlpAgent.instance.meter.addCounter('orders.created');
+SkywalkingAgent.instance.nativeTracer.recordSpan(
+  name: 'checkout',
+  duration: const Duration(milliseconds: 120),
+);
+SkywalkingAgent.instance.meter?.addCounter('orders.created');
 ```
 
 ## `--dart-define` (recommended)
 
 ```bash
 flutter run \
-  --dart-define=OTEL_SERVICE_NAME=my-flutter-app \
-  --dart-define=OTEL_EXPORTER_OTLP_ENDPOINT=http://10.0.2.2:12800
+  --dart-define=SKYWALKING_AGENT_MODE=nativeFull \
+  --dart-define=SKYWALKING_METRICS_ENABLED=true \
+  --dart-define=SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.1.10:11800 \
+  --dart-define=APP_VERSION=1.0.0+1
 ```
 
 | Define | Purpose |
 |--------|---------|
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP base URL (no `/v1/traces` suffix) |
-| `OTEL_SERVICE_NAME` | Service name in UI |
-| `SKYWALKING_OTLP_ENDPOINT` | Alias for endpoint |
+| `SW_AGENT_COLLECTOR_BACKEND_SERVICES` | OAP gRPC `host:11800` |
+| `SKYWALKING_LAN_HOST` / `DEFAULT_SKYWALKING_LAN_HOST` | Dev LAN IP → `:11800` |
+| `SKYWALKING_SERVICE_NAME` / `SW_AGENT_NAME` | Service name in UI |
+| `APP_VERSION` | Instance / build version (Browser-style charts) |
 | `SKYWALKING_ENABLED=false` | Disable agent |
-| `SKYWALKING_METRICS_ENABLED=false` | Traces only |
+| `SKYWALKING_METRICS_ENABLED=false` | Trace + logs only |
+
+Legacy values `otlp`, `hybrid`, `SKYWALKING_OTLP_ENDPOINT` are **ignored** (mapped to `nativeFull`).
 
 ## OAP configuration
 
-```yaml
-receiver-otel:
-  default:
-    enabledHandlers: otlp-traces,otlp-metrics,otlp-logs
-query-zipkin:
-  selector: default   # Zipkin UI for traces
-```
-
-Follow [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md): copy [doc/oap/dart-otlp.yaml](doc/oap/dart-otlp.yaml), add `Layer.DART`, enable `dart/*` and OTLP handlers, enable `query-zipkin`. Rebuild and restart OAP. Traces: **OTel & Zipkin Traces** or **LAYERS → DART** (native/hybrid).
-
-## Network pitfall (API vs OTLP)
-
-| Traffic | Example | Port |
-|---------|---------|------|
-| Business API | `http://your-domain` | 8082 |
-| OTLP | `https://your-domain` or `http://host:12800` | 12800 |
-
-Do **not** send `/v1/traces` to the business HTTP port.
+See [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md): enable **DART** layer, copy **dart-native-meter** rules, listen on **0.0.0.0:11800**.
 
 ## Verify
 
 ```powershell
 cd path/to/skywalking-dart
-$env:OTEL_EXPORTER_OTLP_ENDPOINT = "http://127.0.0.1:12800"
-$env:OTEL_SERVICE_NAME = "flutter-otlp-verify"
-dart run bin/verify_otlp.dart
+$env:SW_AGENT_COLLECTOR_BACKEND_SERVICES = "127.0.0.1:11800"
+$env:SKYWALKING_SERVICE_NAME = "xt-open-app"
+dart run bin/verify_native.dart
 ```
 
 ## License

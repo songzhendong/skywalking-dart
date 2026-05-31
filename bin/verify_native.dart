@@ -28,16 +28,13 @@ Future<void> main(List<String> args) async {
   final agent = SkywalkingAgent.init(
     AgentConfig(
       mode: AgentMode.nativeFull,
-      otlp: OtlpExporterConfig(
-        serviceName: service,
-        tracesEnabled: false,
-        metricsEnabled: false,
-      ),
       native: NativeAgentConfig(
         serviceName: service,
         backendAddress: backend,
         tracesEnabled: true,
       ),
+      metricsChannel: TelemetryChannel.none,
+      logsChannel: TelemetryChannel.none,
     ),
   );
 
@@ -90,7 +87,7 @@ Future<void> main(List<String> args) async {
     stderr.writeln(
       'FAIL: native segment export rejected or unreachable at $backend',
     );
-    stderr.writeln('Check: OAP started, gRPC 11800 open, not only OTLP 12800.');
+    stderr.writeln('Check: OAP started, gRPC 11800 open (native agent port).');
     exitCode = 1;
     await agent.shutdown().timeout(const Duration(seconds: 3), onTimeout: () {});
     return;

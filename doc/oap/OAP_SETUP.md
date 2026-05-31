@@ -1,16 +1,10 @@
-# SkyWalking OAP setup for skywalking-dart
+# SkyWalking OAP setup for skywalking-dart (nativeFull only)
 
-Align OAP with this agent (OTLP **12800**, native gRPC **11800**, service layer **DART**).
+Align OAP with the Flutter agent: **native gRPC 11800** (Trace + Meter + Log), service layer **DART**.
 
 ## 1. `application.yml` (server-starter)
 
 ```yaml
-receiver-otel:
-  selector: ${SW_OTEL_RECEIVER:default}
-  default:
-    enabledHandlers: ${SW_OTEL_RECEIVER_ENABLED_HANDLERS:"otlp-traces,otlp-metrics,otlp-logs"}
-    enabledOtelMetricsRules: ${SW_OTEL_RECEIVER_ENABLED_OTEL_METRICS_RULES:"...,dart/*"}
-
 receiver-zipkin:
   selector: ${SW_RECEIVER_ZIPKIN:default}
 
@@ -18,61 +12,55 @@ query-zipkin:
   selector: ${SW_QUERY_ZIPKIN:default}
 ```
 
-`core.gRPCHost` / `core.gRPCPort` must listen on **0.0.0.0:11800** for native/hybrid trace export.
+`core.gRPCHost` / `core.gRPCPort` must listen on **0.0.0.0:11800**.
 
-After edits: **rebuild OAP** (`mvn clean package -DskipTests` in `oap-server`) and restart.
+Zipkin (9412) is optional for auxiliary trace search; **Horizon Dart dashboards use native Meter**, not OTLP.
 
-## 2. OTLP metric rules
+After edits: **rebuild OAP** if `Layer.java` changed, then restart.
 
-Copy [dart-otlp.yaml](dart-otlp.yaml) to:
+## 2. Native meter rules (required)
 
-`oap-server/server-starter/src/main/resources/otel-rules/dart/dart-otlp.yaml`
+Copy to `oap-server/server-starter/src/main/resources/meter-analyzer-config/`:
 
-Rule id in config is **`dart/dart-otlp`** → enable via `dart/*` in `enabledOtelMetricsRules`.
+| File | ES prefix |
+|------|-----------|
+| [dart-native-meter.yaml](dart-native-meter.yaml) | `meter_flutter_*` |
+| [dart-native-meter-instance.yaml](dart-native-meter-instance.yaml) | `meter_flutter_instance_*` |
 
-## 3. `Layer.DART` (required for rules + native registration)
+`agent-analyzer.default.meterAnalyzerActiveFiles`:
 
-In `oap-server/server-core/.../Layer.java`, add:
+`...,dart-native-meter,dart-native-meter-instance`
+
+Restart OAP after changes.
+
+## 3. `Layer.DART`
+
+In `oap-server/server-core/.../Layer.java`:
 
 ```java
-    /**
-     * Dart / Flutter apps (skywalking-dart OTLP + native gRPC).
-     */
     DART(43, true);
 ```
-
-Rebuild OAP after changing `Layer.java`.
 
 ## 4. Verify
 
 ```powershell
-Invoke-WebRequest http://127.0.0.1:9412/zipkin/api/v2/services -UseBasicParsing
-
-cd path/to/skywalking-dart
-$env:OTEL_EXPORTER_OTLP_ENDPOINT = "http://127.0.0.1:12800"
-$env:OTEL_SERVICE_NAME = "xt-open-app"
-dart run bin/verify_otlp.dart --quick
-
 $env:SW_AGENT_COLLECTOR_BACKEND_SERVICES = "127.0.0.1:11800"
+$env:SKYWALKING_SERVICE_NAME = "xt-open-app"
 dart run bin/verify_native.dart
+```
+
+Or from `xt_open_app`:
+
+```powershell
+.\scripts\skywalking\run-verify-native-full.ps1
 ```
 
 Inspect: `http://127.0.0.1:17128/inspect/metrics?regex=meter_flutter`
 
-## 5. Agent modes (skywalking-dart ≥ 0.1.4)
+## 5. Horizon UI
 
-| Mode | Trace | Metrics | Log |
-|------|-------|---------|-----|
-| `otlp` | OTLP 12800 | OTLP 12800 | — |
-| `hybrid` | gRPC 11800 | OTLP 12800 | gRPC 11800 |
-| `nativeFull` | gRPC 11800 | gRPC 11800 | gRPC 11800 |
+- **Trace**: **LAYERS → DART → Traces**
+- **Metrics**: **LAYERS → Dart → Service** / **Build versions**
+- **Logs**: **LAYERS → DART → Logs**
 
-Flutter: `--dart-define=SKYWALKING_AGENT_MODE=hybrid` when only 12800 is reachable through a tunnel.
-
-## 6. UI
-
-- **Trace (OTLP)**: Horizon → **OTel & Zipkin Traces**, service = `OTEL_SERVICE_NAME`
-- **Trace (native)**: **LAYERS → DART → Traces**
-- **Metrics**: **OPERATE → Metrics inspect** → **MAL-OTEL → dart → dart-otlp**
-
-Legacy filename [flutter-otlp.yaml](flutter-otlp.yaml) is deprecated; use **dart-otlp.yaml** only.
+Inject `APP_VERSION` (or `SW_AGENT_INSTANCE_NAME`) for build-version charts.

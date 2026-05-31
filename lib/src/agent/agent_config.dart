@@ -1,51 +1,45 @@
 import 'agent_mode.dart';
 import 'native/native_config.dart';
-import 'otlp/otlp_exporter_config.dart';
 import 'telemetry_channel.dart';
 
-/// Unified agent configuration (OTLP + optional native).
+/// Native-only SkyWalking agent configuration.
 class AgentConfig {
   const AgentConfig({
     required this.mode,
-    required this.otlp,
     required this.native,
     required this.metricsChannel,
     required this.logsChannel,
   });
 
   final AgentMode mode;
-  final OtlpExporterConfig otlp;
   final NativeAgentConfig native;
   final TelemetryChannel metricsChannel;
   final TelemetryChannel logsChannel;
 
-  bool get usesOtlpTraces => mode.usesOtlpTraces;
+  bool get usesOtlpTraces => false;
 
-  bool get usesNativeTraces => mode.usesNativeTraces;
+  bool get usesNativeTraces => true;
 
-  bool get usesOtlpMetrics => metricsChannel == TelemetryChannel.otlp;
+  bool get usesOtlpMetrics => false;
 
   bool get usesNativeMetrics => metricsChannel == TelemetryChannel.native;
 
-  bool get usesOtlpLogs => logsChannel == TelemetryChannel.otlp;
+  bool get usesOtlpLogs => false;
 
   bool get usesNativeLogs => logsChannel == TelemetryChannel.native;
 
   factory AgentConfig.fromEnvironment({
     Map<String, String> dartDefines = const {},
     AgentMode defaultMode = AgentMode.nativeFull,
-    String defaultOtlpEndpoint = 'http://127.0.0.1:12800',
     String defaultNativeBackend = '127.0.0.1:11800',
     String defaultServiceName = 'unknown_service',
     bool defaultMetricsEnabled = true,
   }) {
     final mode = AgentMode.parse(
       _pick(dartDefines, const [
-            'SKYWALKING_AGENT_MODE',
-            'SW_AGENT_PROTOCOL',
-          ]) ??
-          _define('SKYWALKING_AGENT_MODE') ??
-          _define('SW_AGENT_PROTOCOL'),
+        'SKYWALKING_AGENT_MODE',
+        'SW_AGENT_PROTOCOL',
+      ]),
       fallback: defaultMode,
     );
     final serviceName = _pick(dartDefines, const [
@@ -56,8 +50,6 @@ class AgentConfig {
         ]) ??
         defaultServiceName;
 
-    final metricsChannel = mode.defaultMetricsChannel;
-    final logsChannel = mode.defaultLogsChannel;
     final metricsGloballyEnabled = _resolveBool(
       dartDefines,
       'SKYWALKING_METRICS_ENABLED',
@@ -68,38 +60,23 @@ class AgentConfig {
       'SKYWALKING_LOGS_ENABLED',
       true,
     );
-    final effectiveMetricsChannel =
-        metricsGloballyEnabled ? metricsChannel : TelemetryChannel.none;
-    final effectiveLogsChannel =
-        logsGloballyEnabled ? logsChannel : TelemetryChannel.none;
-    final otlpMetricsOn = effectiveMetricsChannel == TelemetryChannel.otlp;
+    final metricsChannel =
+        metricsGloballyEnabled ? TelemetryChannel.native : TelemetryChannel.none;
+    final logsChannel =
+        logsGloballyEnabled ? TelemetryChannel.native : TelemetryChannel.none;
 
-    final otlpResolved = OtlpExporterConfig.fromEnvironment(
-      dartDefines: dartDefines,
-      defaultEndpoint: defaultOtlpEndpoint,
-      defaultServiceName: serviceName,
-      defaultMetricsEnabled: otlpMetricsOn,
-    );
     final native = NativeAgentConfig.fromEnvironment(
       dartDefines: dartDefines,
       defaultBackend: defaultNativeBackend,
       defaultServiceName: serviceName,
-      tracesEnabled: mode.usesNativeTraces,
-    );
-
-    final otlp = otlpResolved.copyWith(
-      tracesEnabled: otlpResolved.tracesEnabled && mode.usesOtlpTraces,
-      metricsEnabled: otlpResolved.metricsEnabled && otlpMetricsOn,
-      serviceName: serviceName,
-      serviceInstanceId: otlpResolved.serviceInstanceId ?? native.serviceInstanceId,
+      tracesEnabled: true,
     );
 
     return AgentConfig(
       mode: mode,
-      otlp: otlp,
       native: native,
-      metricsChannel: effectiveMetricsChannel,
-      logsChannel: effectiveLogsChannel,
+      metricsChannel: metricsChannel,
+      logsChannel: logsChannel,
     );
   }
 

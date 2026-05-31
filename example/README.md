@@ -1,45 +1,25 @@
-# 示例 App
+# skywalking_dart example (nativeFull)
 
-<div align="right">
+Flutter 示例：通过 **gRPC 11800** 上报 Trace + Meter。
 
-[![English](https://img.shields.io/badge/lang-English-blue?style=flat-square)](../README.md)
-[![简体中文](https://img.shields.io/badge/lang-简体中文-red?style=flat-square)](../doc/USAGE.md)
+## 前提
 
-</div>
-
-使用 [OtlpFlutter.init](../lib/src/otlp_flutter.dart) 上报 Trace 与 Metrics；点击按钮触发样本数据。
-
-## 前置条件
-
-- Flutter SDK（`>=3.10.0`）
-- **SkyWalking OAP** 已启用 OTLP（REST **12800**）
-
-OAP 配置见 [README](../README.md#oap-configuration)。
+- OAP 已监听 `0.0.0.0:11800`
+- 已按 [../doc/oap/OAP_SETUP.md](../doc/oap/OAP_SETUP.md) 配置 DART layer 与 meter 规则
 
 ## 运行
 
 ```bash
 cd example
-flutter pub get
-flutter run
+flutter run \
+  --dart-define=SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 \
+  --dart-define=SKYWALKING_AGENT_MODE=nativeFull
 ```
 
-点击 **Send sample trace + metric**，在 Horizon → **OTel & Zipkin Traces** 中查询 Service **`flutter-otlp-demo`**。
-
-## OTLP 地址
-
-| 环境 | `--dart-define` |
-|------|-----------------|
-| 本机 / iOS 模拟器 | 默认 `http://127.0.0.1:12800` |
-| Android 模拟器 | `OTEL_EXPORTER_OTLP_ENDPOINT=http://10.0.2.2:12800` |
-| 真机（电脑局域网） | `OTEL_EXPORTER_OTLP_ENDPOINT=http://<电脑IP>:12800` |
+Android 模拟器访问本机 OAP：
 
 ```bash
-flutter run --dart-define=OTEL_EXPORTER_OTLP_ENDPOINT=http://10.0.2.2:12800
+flutter run --dart-define=SW_AGENT_COLLECTOR_BACKEND_SERVICES=10.0.2.2:11800
 ```
 
-## 关闭 Agent
-
-```bash
-flutter run --dart-define=SKYWALKING_ENABLED=false
-```
+点击 **Send sample**，在 Horizon **LAYERS → DART** 查看 Service **`flutter-native-demo`**。

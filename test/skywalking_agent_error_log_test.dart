@@ -23,12 +23,6 @@ void main() {
     SkywalkingAgent.init(
       AgentConfig(
         mode: AgentMode.nativeFull,
-        otlp: OtlpExporterConfig(
-          otlpEndpoint: 'http://127.0.0.1:12800',
-          serviceName: 'test-app',
-          tracesEnabled: false,
-          metricsEnabled: false,
-        ),
         native: nativeConfig,
         metricsChannel: TelemetryChannel.native,
         logsChannel: TelemetryChannel.native,

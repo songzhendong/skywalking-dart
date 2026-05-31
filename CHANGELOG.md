@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Breaking:** OTLP / hybrid / `dart-otlp` removed; agent is **nativeFull only** (gRPC 11800: Trace + Meter + Log).
+- Removed `agent/otlp/`, `bin/verify_otlp.dart`, `doc/oap/dart-otlp.yaml`; docs and example updated for native agent.
 - fix: `LogReportService.collect` now consumes the server `Commands` response stream (same client-streaming issue as meter).
 - fix: `MeterReportService.collectBatch` now consumes the server `Commands` response stream so OAP processes native meter batches (grpc-dart client-streaming semantics).
 

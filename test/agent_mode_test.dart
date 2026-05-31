@@ -1,81 +1,43 @@
-import 'package:skywalking_dart/skywalking_dart.dart';
+import 'package:skywalking_dart/src/agent/agent_config.dart';
+import 'package:skywalking_dart/src/agent/agent_mode.dart';
+import 'package:skywalking_dart/src/agent/telemetry_channel.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('AgentMode.parse', () {
-    expect(AgentMode.parse('otlp'), AgentMode.otlp);
+  test('AgentMode.parse always nativeFull', () {
+    expect(AgentMode.parse('otlp'), AgentMode.nativeFull);
+    expect(AgentMode.parse('hybrid'), AgentMode.nativeFull);
     expect(AgentMode.parse('nativeFull'), AgentMode.nativeFull);
-    expect(AgentMode.parse('skywalking'), AgentMode.nativeFull);
-    expect(AgentMode.parse('hybrid'), AgentMode.hybrid);
-    expect(AgentMode.parse('native'), AgentMode.nativeFull);
-    expect(AgentMode.parse('otlp_with_sw8'), AgentMode.otlp);
     expect(AgentMode.parse(null), AgentMode.nativeFull);
   });
 
   test('nativeFull uses native gRPC for trace metrics and logs', () {
     const mode = AgentMode.nativeFull;
-    expect(mode.defaultMetricsChannel, TelemetryChannel.native);
-    expect(mode.defaultLogsChannel, TelemetryChannel.native);
-    expect(mode.usesNativeTraces, isTrue);
-    expect(mode.injectSw8, isTrue);
-  });
-
-  test('hybrid uses native trace/log and OTLP metrics', () {
-    const mode = AgentMode.hybrid;
-    expect(mode.defaultMetricsChannel, TelemetryChannel.otlp);
-    expect(mode.defaultLogsChannel, TelemetryChannel.native);
     expect(mode.usesNativeTraces, isTrue);
     expect(mode.usesOtlpTraces, isFalse);
     expect(mode.injectSw8, isTrue);
   });
 
-  test('otlp uses OTLP for trace and metrics', () {
-    const mode = AgentMode.otlp;
-    expect(mode.defaultMetricsChannel, TelemetryChannel.otlp);
-    expect(mode.defaultLogsChannel, TelemetryChannel.none);
-    expect(mode.usesOtlpTraces, isTrue);
-    expect(mode.injectSw8, isFalse);
-  });
-
-  test('AgentConfig uses static version as instance id (browser-style)', () {
+  test('AgentConfig.fromEnvironment uses native metrics and logs', () {
     final cfg = AgentConfig.fromEnvironment(
       dartDefines: const {
-        'OTEL_SERVICE_NAME': 'my-app',
+        'SKYWALKING_AGENT_MODE': 'otlp',
         'APP_VERSION': '1.0.0+1',
+        'SW_AGENT_INSTANCE_NAME': '1.0.0+1',
       },
-      defaultServiceName: 'fallback',
     );
-    expect(cfg.otlp.serviceInstanceId, cfg.native.serviceInstanceId);
-    expect(cfg.otlp.serviceInstanceId, '1.0.0+1');
-    expect(cfg.otlp.serviceVersion, '1.0.0+1');
-    expect(cfg.native.serviceVersion, '1.0.0+1');
+    expect(cfg.mode, AgentMode.nativeFull);
+    expect(cfg.metricsChannel, TelemetryChannel.native);
+    expect(cfg.logsChannel, TelemetryChannel.native);
+    expect(cfg.usesOtlpMetrics, isFalse);
+    expect(cfg.native.serviceInstanceId, '1.0.0+1');
   });
 
-  test('AgentConfig mode selects channels', () {
-    final nativeCfg = AgentConfig.fromEnvironment(
-      dartDefines: const {'SKYWALKING_AGENT_MODE': 'nativeFull'},
-      defaultServiceName: 'my-app',
+  test('SKYWALKING_METRICS_ENABLED=false disables meter channel', () {
+    final cfg = AgentConfig.fromEnvironment(
+      dartDefines: const {'SKYWALKING_METRICS_ENABLED': 'false'},
     );
-    expect(nativeCfg.metricsChannel, TelemetryChannel.native);
-    expect(nativeCfg.logsChannel, TelemetryChannel.native);
-
-    final hybridCfg = AgentConfig.fromEnvironment(
-      dartDefines: const {'SKYWALKING_AGENT_MODE': 'hybrid'},
-      defaultServiceName: 'my-app',
-    );
-    expect(hybridCfg.metricsChannel, TelemetryChannel.otlp);
-    expect(hybridCfg.logsChannel, TelemetryChannel.native);
-
-    final otlpCfg = AgentConfig.fromEnvironment(
-      dartDefines: const {'SKYWALKING_AGENT_MODE': 'otlp'},
-      defaultServiceName: 'my-app',
-    );
-    expect(otlpCfg.metricsChannel, TelemetryChannel.otlp);
-    expect(otlpCfg.logsChannel, TelemetryChannel.none);
-  });
-
-  test('native service instance id is unknown when version unset', () {
-    final native = NativeAgentConfig(serviceName: 'my-app');
-    expect(native.serviceInstanceId, 'unknown');
+    expect(cfg.metricsChannel, TelemetryChannel.none);
+    expect(cfg.logsChannel, TelemetryChannel.native);
   });
 }
