@@ -1,10 +1,8 @@
 # Analyzer, unit tests, and optional OAP gRPC smoke (verify_native --quick).
 name: CI
 
-env:
-  # 10.2+ removed H2; CI uses last image with standalone default storage.
-  OAP_DOCKER_IMAGE: apache/skywalking-oap-server:10.1.0
-
+# OAP image for smoke-oap must be a literal here (services.*.image cannot use env context).
+# Keep scripts/run-ci-github-like.ps1 $OapDockerImage in sync when bumping.
 on:
   push:
     branches: [main]
@@ -37,7 +35,7 @@ jobs:
     services:
       # 10.2.x removed embedded H2; 10.1.0 supports standalone default storage for CI smoke.
       oap:
-        image: ${{ env.OAP_DOCKER_IMAGE }}
+        image: apache/skywalking-oap-server:10.1.0
         ports:
           - 11800:11800
         env:
@@ -62,8 +60,8 @@ jobs:
         run: |
           for i in $(seq 1 90); do
             if (echo >/dev/tcp/127.0.0.1/11800) 2>/dev/null; then
-              echo "OAP TCP 11800 open after ${i} attempts; warm-up 15s for gRPC..."
-              sleep 15
+              echo "OAP TCP 11800 open after ${i} attempts; warm-up 20s for gRPC..."
+              sleep 20
               exit 0
             fi
             sleep 2
@@ -75,4 +73,15 @@ jobs:
         env:
           SW_AGENT_COLLECTOR_BACKEND_SERVICES: 127.0.0.1:11800
           SKYWALKING_SERVICE_NAME: ci-smoke-my-app
-        run: dart run bin/verify_native.dart --quick
+        run: |
+          for attempt in 1 2 3; do
+            echo "verify_native attempt $attempt/3"
+            if dart run bin/verify_native.dart --quick; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "retry in 10s (OAP gRPC may still be warming up)..."
+              sleep 10
+            fi
+          done
+          exit 1
