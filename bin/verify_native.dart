@@ -36,6 +36,9 @@ Future<void> main(List<String> args) async {
       metricsChannel: TelemetryChannel.none,
       logsChannel: TelemetryChannel.none,
     ),
+    // CI --quick: no background flush timer or management registration (faster, fewer gRPC calls).
+    periodicNativeFlush: !quick,
+    registerNativeService: !quick,
   );
 
   final exporter = agent.native.segmentExporter;

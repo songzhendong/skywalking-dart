@@ -31,6 +31,7 @@ jobs:
 
   smoke-oap:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: test
     services:
       # 10.2.x removed embedded H2; 10.1.0 supports standalone default storage for CI smoke.
@@ -76,7 +77,7 @@ jobs:
         run: |
           for attempt in 1 2 3; do
             echo "verify_native attempt $attempt/3"
-            if dart run bin/verify_native.dart --quick; then
+            if timeout 90 dart run bin/verify_native.dart --quick; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
