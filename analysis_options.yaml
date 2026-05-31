@@ -1,1 +1,6 @@
 include: package:lints/recommended.yaml
+
+analyzer:
+  # Flutter example is optional; GitHub CI uses Dart-only (no Flutter SDK).
+  exclude:
+    - example/**

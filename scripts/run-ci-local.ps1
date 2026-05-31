@@ -1,4 +1,6 @@
-# Mirror .github/workflows/ci.yml on Windows (test job + optional OAP smoke).
+# Approximate .github/workflows/ci.yml on Windows (host Dart; may differ if Flutter is on PATH).
+# For a closer match to GitHub (dart:stable in Linux container, no Flutter), use:
+#   .\scripts\run-ci-github-like.ps1
 param(
     [switch] $SkipSmoke
 )
@@ -10,7 +12,7 @@ Write-Host '=== CI: pub get (package only, skip example/) ===' -ForegroundColor 
 dart pub get --no-example
 
 Write-Host '=== CI: analyze ===' -ForegroundColor Cyan
-dart analyze
+dart analyze lib bin test
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host '=== CI: test ===' -ForegroundColor Cyan

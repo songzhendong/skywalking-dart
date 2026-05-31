@@ -35,6 +35,7 @@ SkyWalking **native gRPC** agent for **Dart & Flutter**: Trace (Segment), Meter,
 | [doc/OPEN_SOURCE.md](doc/OPEN_SOURCE.md) | Standalone use without xt_open_app backend |
 | [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md) | OAP `Layer.DART`, meter-analyzer, gRPC 11800 |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [doc/releases/README.md](doc/releases/README.md) | Local CI (simulate GitHub Actions) |
 
 ## Install
 
