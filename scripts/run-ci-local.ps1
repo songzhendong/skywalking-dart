@@ -6,8 +6,8 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
-Write-Host '=== CI: pub get ===' -ForegroundColor Cyan
-dart pub get
+Write-Host '=== CI: pub get (package only, skip example/) ===' -ForegroundColor Cyan
+dart pub get --no-example
 
 Write-Host '=== CI: analyze ===' -ForegroundColor Cyan
 dart analyze

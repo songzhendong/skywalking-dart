@@ -18,3 +18,5 @@ Or paste the markdown from `doc/releases/v<version>.md` in the GitHub **Releases
 .\scripts\run-ci-local.ps1          # analyze + test + Docker OAP smoke
 .\scripts\run-ci-local.ps1 -SkipSmoke
 ```
+
+CI uses `dart pub get --no-example` because `example/` is a Flutter app (GitHub `setup-dart` has no Flutter SDK). Locally, plain `dart pub get` also resolves `example/` when Flutter is on `PATH`.

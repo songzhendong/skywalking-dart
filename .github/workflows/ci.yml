@@ -17,8 +17,9 @@ jobs:
         with:
           sdk: stable
 
+      # Root package is pure Dart; `example/` needs Flutter SDK (see `dart pub get --help`).
       - name: Pub get
-        run: dart pub get
+        run: dart pub get --no-example
 
       - name: Analyze
         run: dart analyze
@@ -45,7 +46,7 @@ jobs:
           sdk: stable
 
       - name: Pub get
-        run: dart pub get
+        run: dart pub get --no-example
 
       - name: Wait for OAP gRPC 11800
         run: |
