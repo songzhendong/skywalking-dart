@@ -44,14 +44,13 @@ jobs:
         run: dart pub get --no-example
 
       # Job-level docker (not services:) — same as scripts/run-ci-github-like.ps1 on the runner host.
-      - name: Start OAP (9.7.0 + H2)
+      - name: Start OAP (10.1.0 standalone)
         run: |
           docker rm -f ci-oap 2>/dev/null || true
           docker run -d --name ci-oap \
             -p 11800:11800 \
-            -e SW_STORAGE=h2 \
             -e SW_HEALTH_CHECKER=default \
-            apache/skywalking-oap-server:9.7.0
+            apache/skywalking-oap-server:10.1.0
           for i in $(seq 1 90); do
             if (echo >/dev/tcp/127.0.0.1/11800) 2>/dev/null; then
               echo "OAP TCP 11800 open after ${i} attempts; warm-up 25s for gRPC..."
