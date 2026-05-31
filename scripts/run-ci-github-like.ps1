@@ -91,6 +91,10 @@ try {
     }
     if (-not $ready) { throw 'OAP gRPC 11800 not reachable within 120s' }
 
+    # TCP open != OAP ready to accept segments; allow JVM/storage init (flaky without this on Windows Docker).
+    Write-Host 'OAP TCP up; warming up gRPC (20s)...' -ForegroundColor DarkGray
+    Start-Sleep -Seconds 20
+
     $smokeCmd = 'set -e; cd /app; dart pub get --no-example; dart run bin/verify_native.dart --quick'
 
     # Published 11800:11800 on host; container reaches host via host.docker.internal (Windows/macOS/Linux Docker Desktop).
@@ -107,10 +111,11 @@ try {
         Write-Host '=== [smoke-oap] FAILED (exit' $LASTEXITCODE ')' -ForegroundColor Red
         exit $LASTEXITCODE
     }
+    Write-Host '=== [smoke-oap] passed ===' -ForegroundColor Green
 }
 finally {
-    Invoke-DockerQuiet @('kill', $container) | Out-Null
-    Invoke-DockerQuiet @('rm', '-f', $container) | Out-Null
+    cmd /c "docker rm -f $container" 2>nul | Out-Null
 }
 
 Write-Host '=== GitHub-like CI: all passed ===' -ForegroundColor Green
+exit 0

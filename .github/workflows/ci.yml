@@ -52,7 +52,8 @@ jobs:
         run: |
           for i in $(seq 1 60); do
             if (echo >/dev/tcp/127.0.0.1/11800) 2>/dev/null; then
-              echo "OAP gRPC ready after ${i}s"
+              echo "OAP TCP 11800 open after ${i}s; warm-up 20s for gRPC..."
+              sleep 20
               exit 0
             fi
             sleep 2
