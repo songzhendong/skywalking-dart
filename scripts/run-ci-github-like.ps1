@@ -1,6 +1,6 @@
 # Simulate GitHub Actions CI locally:
 #   - job "test": ubuntu-like dart:stable, NO Flutter, same commands as .github/workflows/ci.yml
-#   - job "smoke-oap": apache/skywalking-oap-server:10.2.0 + verify_native --quick
+#   - job "smoke-oap": apache/skywalking-oap-server:10.1.0 + verify_native --quick
 #
 # Usage:
 #   .\scripts\run-ci-github-like.ps1
@@ -61,16 +61,15 @@ if ($SkipSmoke) {
     exit 0
 }
 
-Write-Host '=== [smoke-oap] job (OAP 10.2.0 + verify_native --quick) ===' -ForegroundColor Cyan
+Write-Host '=== [smoke-oap] job (OAP 10.1.0 + verify_native --quick) ===' -ForegroundColor Cyan
 $container = 'skywalking-dart-ci-oap'
 Invoke-DockerQuiet @('rm', '-f', $container) | Out-Null
 
 $runCode = Invoke-DockerQuiet @(
     'run', '-d', '--name', $container,
     '-p', '11800:11800',
-    '-e', 'SW_STORAGE=h2',
     '-e', 'SW_HEALTH_CHECKER=default',
-    'apache/skywalking-oap-server:10.2.0'
+    'apache/skywalking-oap-server:10.1.0'
 )
 if ($runCode -ne 0) { throw "docker run OAP failed (exit $runCode)" }
 

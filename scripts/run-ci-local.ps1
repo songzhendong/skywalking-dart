@@ -40,7 +40,7 @@ function Invoke-DockerQuiet {
     return $code
 }
 
-Write-Host '=== CI: smoke-oap (Docker OAP 10.2.0) ===' -ForegroundColor Cyan
+Write-Host '=== CI: smoke-oap (Docker OAP 10.1.0) ===' -ForegroundColor Cyan
 $container = 'skywalking-dart-ci-oap'
 Invoke-DockerQuiet @('rm', '-f', $container) | Out-Null
 $runCode = Invoke-DockerQuiet @(

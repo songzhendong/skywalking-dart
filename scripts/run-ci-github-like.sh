@@ -28,8 +28,8 @@ echo "=== [smoke-oap] job ==="
 CONTAINER=skywalking-dart-ci-oap
 docker rm -f "$CONTAINER" 2>/dev/null || true
 docker run -d --name "$CONTAINER" -p 11800:11800 \
-  -e SW_STORAGE=h2 -e SW_HEALTH_CHECKER=default \
-  apache/skywalking-oap-server:10.2.0
+  -e SW_HEALTH_CHECKER=default \
+  apache/skywalking-oap-server:10.1.0
 
 cleanup() {
   docker stop -t 3 "$CONTAINER" 2>/dev/null || true
