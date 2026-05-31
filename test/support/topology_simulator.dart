@@ -4,10 +4,10 @@ import 'package:skywalking_dart/src/agent/native/native_span.dart';
 
 /// Builds multi-service native segments for OAP topology smoke tests.
 abstract final class TopologySimulator {
-  static const defaultAppService = 'xt-open-app';
-  static const defaultGatewayService = 'xt-gateway';
-  static const defaultBackendService = 'xt-backend';
-  static const defaultCacheService = 'xt-redis';
+  static const defaultAppService = 'demo-app';
+  static const defaultGatewayService = 'demo-gateway';
+  static const defaultBackendService = 'demo-backend';
+  static const defaultCacheService = 'demo-redis';
   static const defaultDatabaseService = 'mysql';
 
   /// One distributed trace: app → gateway → backend → redis + mysql.
@@ -33,7 +33,7 @@ abstract final class TopologySimulator {
     const gwInst = 'verify-gateway-1';
     const beInst = 'verify-backend-1';
 
-    const feedOp = 'GET:/xt/app/feed/list';
+    const feedOp = 'GET:/api/feed/list';
     const gwRouteOp = 'SpringCloud/gateway/route';
     const beQueryOp = 'Mysql/JDBC/Query';
     const cacheOp = 'Redis/GET';
@@ -43,7 +43,7 @@ abstract final class TopologySimulator {
     final beCachePeer = 'xt-redis:6379';
     final beDbPeer = '$databasePeer:3306';
 
-  // --- xt-open-app ---
+  // --- app tier ---
     final appLocal = _span(
       traceId: tid,
       traceSegmentId: appSeg,
@@ -74,7 +74,7 @@ abstract final class TopologySimulator {
       componentId: componentId,
     );
 
-    // --- xt-gateway ---
+    // --- gateway tier ---
     final gwEntry = _span(
       traceId: tid,
       traceSegmentId: gwSeg,
@@ -116,7 +116,7 @@ abstract final class TopologySimulator {
       componentId: componentId,
     );
 
-    // --- xt-backend ---
+    // --- backend tier ---
     final beEntry = _span(
       traceId: tid,
       traceSegmentId: beSeg,
@@ -126,7 +126,7 @@ abstract final class TopologySimulator {
       parentSpanId: -1,
       spanType: NativeSpanType.entry,
       spanLayer: NativeSpanLayer.http,
-      operationName: '/xt/app/feed/list',
+      operationName: '/api/feed/list',
       startTimeMs: t0 + 78,
       endTimeMs: t0 + 82,
       componentId: componentId,

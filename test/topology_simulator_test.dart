@@ -15,11 +15,11 @@ void main() {
     expect(
       services,
       containsAll([
-        'xt-open-app',
-        'xt-gateway',
-        'xt-backend',
-        'xt-redis',
-        'mysql',
+        TopologySimulator.defaultAppService,
+        TopologySimulator.defaultGatewayService,
+        TopologySimulator.defaultBackendService,
+        TopologySimulator.defaultCacheService,
+        TopologySimulator.defaultDatabaseService,
       ]),
     );
 

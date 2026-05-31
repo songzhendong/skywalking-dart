@@ -1,0 +1,5 @@
+release: v0.2.2 native runtime tuning and OSS docs
+
+- Remove usesOtlp API; runtime queue flush log sample via dart-define
+- Move TopologySimulator to test/support; archive OTLP scripts
+- Add OPEN_SOURCE.md; clarify standalone vs xt_open_app

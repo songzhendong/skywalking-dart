@@ -128,8 +128,8 @@ See [doc/oap/OAP_SETUP.md](doc/oap/OAP_SETUP.md): enable **DART** layer, copy **
 ```powershell
 cd path/to/skywalking-dart
 $env:SW_AGENT_COLLECTOR_BACKEND_SERVICES = "127.0.0.1:11800"
-$env:SKYWALKING_SERVICE_NAME = "xt-open-app"
-dart run bin/verify_native.dart
+$env:SKYWALKING_SERVICE_NAME = "my-app"
+dart run bin/verify_native.dart --quick
 ```
 
 ## Standalone vs xt_open_app

@@ -15,7 +15,9 @@ Future<void> main(List<String> args) async {
       Platform.environment['SKYWALKING_NATIVE_BACKEND'] ??
       '127.0.0.1:11800';
   final service =
-      Platform.environment['SW_AGENT_NAME'] ?? 'xt-open-app-verify-native';
+      Platform.environment['SW_AGENT_NAME'] ??
+      Platform.environment['SKYWALKING_SERVICE_NAME'] ??
+      'my-app-verify-native';
   final traceCount = int.tryParse(
         Platform.environment['VERIFY_NATIVE_TRACE_COUNT'] ?? '',
       ) ??
@@ -46,6 +48,12 @@ Future<void> main(List<String> args) async {
   }
 
   final exporter = native.segmentExporter;
+  if (exporter == null) {
+    stderr.writeln('FAIL: segment exporter not initialized');
+    exitCode = 1;
+    return;
+  }
+
   if (quick) {
     agent.nativeTracer.recordSpan(
       name: 'verify.native.bootstrap',
@@ -58,11 +66,11 @@ Future<void> main(List<String> args) async {
       traceCount: traceCount,
       appService: service,
       gatewayService:
-          Platform.environment['VERIFY_GATEWAY_SERVICE'] ?? 'xt-gateway',
+          Platform.environment['VERIFY_GATEWAY_SERVICE'] ?? 'demo-gateway',
       backendService:
-          Platform.environment['VERIFY_BACKEND_SERVICE'] ?? 'xt-backend',
+          Platform.environment['VERIFY_BACKEND_SERVICE'] ?? 'demo-backend',
       cacheService:
-          Platform.environment['VERIFY_CACHE_SERVICE'] ?? 'xt-redis',
+          Platform.environment['VERIFY_CACHE_SERVICE'] ?? 'demo-redis',
       databasePeer:
           Platform.environment['VERIFY_DB_SERVICE'] ?? 'mysql',
     );
@@ -96,7 +104,7 @@ Future<void> main(List<String> args) async {
   if (!quick) {
     stdout.writeln(
       'Horizon: Services Dashboard, Last 15m, refresh; expect edges '
-      '$service → xt-gateway → xt-backend → xt-redis/mysql',
+      '$service → demo-gateway → demo-backend → demo-redis/mysql',
     );
   }
   await agent.shutdown().timeout(const Duration(seconds: 3), onTimeout: () {});

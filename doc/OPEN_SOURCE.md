@@ -29,6 +29,10 @@ dart run bin/verify_native.dart --quick
 
 HTTP 出口使用 `SkywalkingAgent.instance.httpClient()` 会注入 **sw8**。下游需 SkyWalking Java Agent 或兼容头解析，才能在 OAP 看到跨服务边。
 
+## 发版说明
+
+各 tag 的 Release 正文见 [doc/releases/](releases/)（例如 [v0.2.2.md](releases/v0.2.2.md)）。
+
 ## 问题反馈
 
 [GitHub Issues](https://github.com/songzhendong/skywalking-dart/issues) — 请附 OAP 版本、dart-define、`verify_native` 输出与 Horizon 截图说明。

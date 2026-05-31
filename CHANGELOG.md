@@ -1,10 +1,14 @@
 # Changelog
 
+Release notes for GitHub tags: [doc/releases/](doc/releases/).
+
 ## 0.2.2
 
 - Move `TopologySimulator` to `test/support/` (smoke / unit tests only).
 - Runtime tuning via dart-define / env: `SKYWALKING_FLUSH_INTERVAL_SEC`, `SKYWALKING_MAX_BATCH_SIZE`, `SKYWALKING_MAX_QUEUE_SIZE`, `SKYWALKING_LOG_SAMPLE_RATE` (ERROR logs always kept).
 - Archive OTLP-era scripts under `scripts/archive/`.
+- Docs: [doc/OPEN_SOURCE.md](doc/OPEN_SOURCE.md), [doc/releases/v0.2.2.md](doc/releases/v0.2.2.md); README examples use generic service names (`my-app`).
+- CI: `dart test` + optional OAP Docker smoke (`verify_native.dart --quick`).
 
 ## 0.2.1
 

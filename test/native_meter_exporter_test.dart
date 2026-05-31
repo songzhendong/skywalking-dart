@@ -10,7 +10,7 @@ void main() {
   test('recordCounter omits service label; batch carries service at MeterData level',
       () async {
     final config = NativeAgentConfig(
-      serviceName: 'xt-open-app',
+      serviceName: 'my-app',
       backendAddress: '127.0.0.1:9',
       serviceInstance: 'test-inst',
       maxBatchSize: 2,
@@ -24,7 +24,7 @@ void main() {
     exporter.recordCounter('app.session.start');
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(client.batches, hasLength(1));
-    expect(client.lastService, 'xt-open-app');
+    expect(client.lastService, 'my-app');
     expect(client.lastServiceInstance, 'test-inst');
     final samples = client.batches.single;
     expect(samples.length, greaterThanOrEqualTo(2));
@@ -35,7 +35,7 @@ void main() {
   test('strips service/instance from user attributes to avoid OAP duplicate key',
       () async {
     final config = NativeAgentConfig(
-      serviceName: 'xt-open-app',
+      serviceName: 'my-app',
       backendAddress: '127.0.0.1:9',
       maxBatchSize: 1,
     );

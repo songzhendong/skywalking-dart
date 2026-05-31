@@ -31,7 +31,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SkywalkingAgent.initFromEnvironment(
     defaultNativeBackend: '127.0.0.1:11800',
-    defaultServiceName: 'xt-open-app',
+    defaultServiceName: 'my-app',
     dartDefines: const {
       'SKYWALKING_AGENT_MODE': 'nativeFull',
       'SKYWALKING_METRICS_ENABLED': 'true',

@@ -19,7 +19,7 @@ void main() {
       },
     );
     final bytes = LogProtoCodec.encode(
-      service: 'xt-open-app',
+      service: 'my-app',
       serviceInstance: 'test-instance',
       layer: 'DART',
       entry: entry,
@@ -36,7 +36,7 @@ void main() {
     const entry = NativeLogEntry(message: 'no-trace-log');
     expect(LogProtoCodec.encodeTraceContext(entry), isEmpty);
     final bytes = LogProtoCodec.encode(
-      service: 'xt-open-app',
+      service: 'my-app',
       serviceInstance: 'test-instance',
       layer: 'DART',
       entry: entry,

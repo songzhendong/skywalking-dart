@@ -45,11 +45,11 @@ In `oap-server/server-core/.../Layer.java`:
 
 ```powershell
 $env:SW_AGENT_COLLECTOR_BACKEND_SERVICES = "127.0.0.1:11800"
-$env:SKYWALKING_SERVICE_NAME = "xt-open-app"
-dart run bin/verify_native.dart
+$env:SKYWALKING_SERVICE_NAME = "my-app"
+dart run bin/verify_native.dart --quick
 ```
 
-Or from `xt_open_app`:
+Optional reference app ([xt_open_app](https://github.com/songzhendong/xt_open_app)):
 
 ```powershell
 .\scripts\skywalking\run-verify-native-full.ps1

@@ -8,7 +8,7 @@ void main() {
       traceId: 'abc123',
       traceSegmentId: 'seg456',
       spanId: 0,
-      service: 'xt-open-app',
+      service: 'my-app',
       serviceInstance: 'inst1',
       endpoint: 'GET /xt/user',
       peer: 'api.example.com:443',
