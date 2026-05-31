@@ -34,9 +34,9 @@ jobs:
     timeout-minutes: 15
     needs: test
     services:
-      # 10.2.x removed embedded H2; 10.1.0 supports standalone default storage for CI smoke.
+      # 10.2+ removed embedded H2; 9.7.x is the last line with reliable docker H2 for CI smoke.
       oap:
-        image: apache/skywalking-oap-server:10.1.0
+        image: apache/skywalking-oap-server:9.7.0
         ports:
           - 11800:11800
         env:
@@ -82,7 +82,7 @@ jobs:
         run: |
           for attempt in 1 2 3; do
             echo "verify_native attempt $attempt/3"
-            if timeout 75 /tmp/verify_native --quick; then
+            if timeout 120 /tmp/verify_native --quick; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
