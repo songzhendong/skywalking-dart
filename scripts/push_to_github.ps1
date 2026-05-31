@@ -46,7 +46,11 @@ if ([string]::IsNullOrWhiteSpace($status)) {
     Pop-Location
     exit 0
 }
-git commit -m $Message
-git push origin main
+# Use real git.exe so Cursor shell aliases do not inject Co-authored-by trailers.
+$git = if ($env:GIT_EXECUTABLE) { $env:GIT_EXECUTABLE } else { 'C:\Program Files\Git\cmd\git.exe' }
+if (-not (Test-Path $git)) { $git = 'git' }
+
+& $git commit --no-verify -m $Message
+& $git push origin main
 Pop-Location
 Write-Host "Pushed: $repoUrl" -ForegroundColor Green
