@@ -1,8 +1,6 @@
 // ignore_for_file: avoid_print
-/// Smoke test: export native Segment to OAP gRPC (11800).
-///
-/// Default: multi-service topology demo (app → gateway → backend → redis/mysql).
-/// `--quick`: single local span only.
+// Smoke test: export native Segment to OAP gRPC (11800).
+// Default: multi-service topology demo; `--quick`: single local span only.
 import 'dart:io';
 
 import 'package:skywalking_dart/skywalking_dart.dart';
@@ -40,14 +38,7 @@ Future<void> main(List<String> args) async {
     ),
   );
 
-  final native = agent.native;
-  if (native == null) {
-    stderr.writeln('FAIL: native agent not initialized');
-    exitCode = 1;
-    return;
-  }
-
-  final exporter = native.segmentExporter;
+  final exporter = agent.native.segmentExporter;
   if (exporter == null) {
     stderr.writeln('FAIL: segment exporter not initialized');
     exitCode = 1;
@@ -77,7 +68,7 @@ Future<void> main(List<String> args) async {
     exporter.enqueueAll(spans);
     stdout.writeln(
       '[verify_native] enqueued ${spans.length} spans '
-      '(${traceCount} traces × 5 services)',
+      '($traceCount traces × 5 services)',
     );
   }
 

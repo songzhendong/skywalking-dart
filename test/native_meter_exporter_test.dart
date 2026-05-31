@@ -4,8 +4,6 @@ import 'package:skywalking_dart/src/agent/native/native_meter_exporter.dart';
 import 'package:skywalking_dart/src/agent/native/native_meter_sample.dart';
 import 'package:test/test.dart';
 
-import 'support/test_native_clients.dart';
-
 void main() {
   test('recordCounter omits service label; batch carries service at MeterData level',
       () async {

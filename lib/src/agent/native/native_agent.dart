@@ -10,7 +10,6 @@ import 'grpc_log_client.dart';
 import 'grpc_management_client.dart';
 import 'grpc_trace_client.dart';
 import 'native_log_context_resolver.dart';
-import 'native_log_entry.dart';
 import 'native_log_exporter.dart';
 import 'native_meter_exporter.dart';
 import 'native_service_registration.dart';
