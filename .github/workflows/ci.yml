@@ -71,6 +71,10 @@ jobs:
           echo "OAP gRPC 11800 not reachable (is OAP 10.1+ storage configured?)"
           exit 1
 
+      # Precompile so smoke does not sit in `dart run` JIT (can look like a hang on GHA).
+      - name: Compile verify_native
+        run: dart compile exe -o /tmp/verify_native bin/verify_native.dart
+
       - name: verify_native --quick
         env:
           SW_AGENT_COLLECTOR_BACKEND_SERVICES: 127.0.0.1:11800
@@ -78,7 +82,7 @@ jobs:
         run: |
           for attempt in 1 2 3; do
             echo "verify_native attempt $attempt/3"
-            if dart run bin/verify_native.dart --quick; then
+            if timeout 75 /tmp/verify_native --quick; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
