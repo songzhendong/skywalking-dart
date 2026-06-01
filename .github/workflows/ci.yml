@@ -1,8 +1,8 @@
 # Analyzer, unit tests, and optional OAP gRPC smoke (verify_native --quick).
 name: CI
 
-# OAP image for smoke-oap must be a literal in docker run (services.*.image cannot use env context).
-# Keep scripts/run-ci-github-like.ps1 $OapDockerImage in sync when bumping.
+# OAP image literal in docker run (services.*.image cannot use env on GHA).
+# Keep scripts/run-ci-github-like.ps1 / .sh $OapDockerImage in sync.
 on:
   push:
     branches: [main]
@@ -31,7 +31,7 @@ jobs:
 
   smoke-oap:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     needs: test
     steps:
       - uses: actions/checkout@v5
@@ -43,7 +43,6 @@ jobs:
       - name: Pub get
         run: dart pub get --no-example
 
-      # Job-level docker (not services:) — same as scripts/run-ci-github-like.ps1 on the runner host.
       - name: Start OAP (10.1.0 standalone)
         run: |
           docker rm -f ci-oap 2>/dev/null || true
@@ -53,8 +52,8 @@ jobs:
             apache/skywalking-oap-server:10.1.0
           for i in $(seq 1 90); do
             if (echo >/dev/tcp/127.0.0.1/11800) 2>/dev/null; then
-              echo "OAP TCP 11800 open after ${i} attempts; warm-up 25s for gRPC..."
-              sleep 25
+              echo "OAP TCP 11800 open after ${i} attempts; warm-up 20s for gRPC..."
+              sleep 20
               exit 0
             fi
             sleep 2
@@ -63,21 +62,18 @@ jobs:
           docker logs ci-oap || true
           exit 1
 
-      - name: Compile verify_native
-        run: dart compile exe -o /tmp/verify_native bin/verify_native.dart
-
       - name: verify_native --quick
         env:
           SW_AGENT_COLLECTOR_BACKEND_SERVICES: 127.0.0.1:11800
           SKYWALKING_SERVICE_NAME: ci-smoke-my-app
         run: |
-          for attempt in 1 2 3; do
-            echo "verify_native attempt $attempt/3"
-            if timeout 180 /tmp/verify_native --quick; then
+          for attempt in 1 2; do
+            echo "verify_native attempt $attempt/2"
+            if timeout 60 dart run bin/verify_native.dart --quick; then
               exit 0
             fi
-            if [ "$attempt" -lt 3 ]; then
-              echo "retry in 10s (OAP gRPC may still be warming up)..."
+            if [ "$attempt" -lt 2 ]; then
+              echo "retry in 10s..."
               sleep 10
             fi
           done

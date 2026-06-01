@@ -36,19 +36,20 @@ Future<void> main(List<String> args) async {
       metricsChannel: TelemetryChannel.none,
       logsChannel: TelemetryChannel.none,
     ),
-    // CI --quick: no background flush timer or management registration (faster, fewer gRPC calls).
+    // CI --quick: no background flush timer; still register so OAP accepts segments.
     periodicNativeFlush: !quick,
-    registerNativeService: !quick,
+    registerNativeService: true,
   );
 
   final exporter = agent.native.segmentExporter;
   if (exporter == null) {
     stderr.writeln('FAIL: segment exporter not initialized');
-    exitCode = 1;
-    return;
+    exit(1);
   }
 
   if (quick) {
+    // Management registration is async; brief wait before first segment export (CI/OAP cold start).
+    await Future<void>.delayed(const Duration(seconds: 3));
     agent.nativeTracer.recordSpan(
       name: 'verify.native.bootstrap',
       duration: const Duration(milliseconds: 12),
@@ -75,7 +76,9 @@ Future<void> main(List<String> args) async {
     );
   }
 
-  const flushTimeout = Duration(seconds: 45);
+  final flushTimeout = quick
+      ? const Duration(seconds: 20)
+      : const Duration(seconds: 45);
   stdout.writeln(
     '[verify_native] flushing segment via gRPC (timeout ${flushTimeout.inSeconds}s)...',
   );
@@ -93,9 +96,8 @@ Future<void> main(List<String> args) async {
       'FAIL: native segment export rejected or unreachable at $backend',
     );
     stderr.writeln('Check: OAP started, gRPC 11800 open (native agent port).');
-    exitCode = 1;
     await agent.shutdown().timeout(const Duration(seconds: 3), onTimeout: () {});
-    return;
+    exit(1);
   }
   stdout.writeln('OK: native segment export finished -> $backend');
   if (!quick) {
@@ -105,4 +107,6 @@ Future<void> main(List<String> args) async {
     );
   }
   await agent.shutdown().timeout(const Duration(seconds: 3), onTimeout: () {});
+  // Force exit: management keep-alive timer otherwise keeps the VM alive (CI smoke timeout).
+  exit(0);
 }

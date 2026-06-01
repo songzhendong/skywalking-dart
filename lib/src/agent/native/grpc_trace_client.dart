@@ -55,7 +55,7 @@ class GrpcTraceClient {
       return await Isolate.run(
         () => _grpcCollectInSync(_host, _port, payload),
       ).timeout(
-        const Duration(seconds: 40),
+        const Duration(seconds: 25),
         onTimeout: () {
           // ignore: avoid_print
           print(
@@ -112,7 +112,7 @@ Future<bool> _grpcCollectInSync(String host, int port, List<int> payload) async 
     await client.$createUnaryCall<List<int>, List<int>>(
       _collectInSyncMethod,
       payload,
-      options: CallOptions(timeout: const Duration(seconds: 30)),
+      options: CallOptions(timeout: const Duration(seconds: 15)),
     );
     return true;
   } on GrpcError catch (e) {
